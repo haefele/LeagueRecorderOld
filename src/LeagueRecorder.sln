@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{79C8C44F-6943-4045-B464-B75CAC877DF6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{23A8597D-6E98-4950-93AC-5F9D19213197}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{F434BDFA-19AB-4C38-977E-BC5F796E3D62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueRecorder.Server.Contracts", "Server\LeagueRecorder.Server.Contracts\LeagueRecorder.Server.Contracts.csproj", "{5D95EA99-8A83-4A55-8BE2-87BCB43964DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueRecorder.Server.Infrastructure", "Server\LeagueRecorder.Server.Infrastructure\LeagueRecorder.Server.Infrastructure.csproj", "{28D4840B-2772-4E47-894A-2F0FEBA8E4DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueRecorder.Server.Hosts.Service", "Server\Hosts\LeagueRecorder.Server.Hosts.Service\LeagueRecorder.Server.Hosts.Service.csproj", "{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D95EA99-8A83-4A55-8BE2-87BCB43964DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D95EA99-8A83-4A55-8BE2-87BCB43964DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D95EA99-8A83-4A55-8BE2-87BCB43964DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D95EA99-8A83-4A55-8BE2-87BCB43964DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28D4840B-2772-4E47-894A-2F0FEBA8E4DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28D4840B-2772-4E47-894A-2F0FEBA8E4DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28D4840B-2772-4E47-894A-2F0FEBA8E4DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28D4840B-2772-4E47-894A-2F0FEBA8E4DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F434BDFA-19AB-4C38-977E-BC5F796E3D62} = {23A8597D-6E98-4950-93AC-5F9D19213197}
+		{5D95EA99-8A83-4A55-8BE2-87BCB43964DC} = {23A8597D-6E98-4950-93AC-5F9D19213197}
+		{28D4840B-2772-4E47-894A-2F0FEBA8E4DD} = {23A8597D-6E98-4950-93AC-5F9D19213197}
+		{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B} = {F434BDFA-19AB-4C38-977E-BC5F796E3D62}
+	EndGlobalSection
+EndGlobal
