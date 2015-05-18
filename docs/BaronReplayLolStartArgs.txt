@@ -1,0 +1,1 @@
+60000 BR.exe Air\\LoLClient.exe "spectator [ServerAddress] [ObKey] [GameId] [PlatformId]"

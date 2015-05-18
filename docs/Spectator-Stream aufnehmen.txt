@@ -1,0 +1,12 @@
+1. GetCurrentGameInfo durch Riot API für einen Benutzer
+2. Das Game abspeichern mit encryption key und so
+3. Die Spectator API aufrufen
+    3.1 GetGameMetaData
+    3.2 GetLastChunkInfo
+    3.3 GetGameDataChunk
+    3.4 GetKeyFrame
+    3.5 Wiederhole 3.1 - 3.4 bis spiel beendet ist
+        Dann die letzten daten von GetGameMetaData und GetLastChunkInfo speichern
+        Außerdem jede Antwort von GetGameDataChunk und GetKeyFrame speichern
+4. Alle Daten in RavenDB/RavenFS pumpen
+5? Riot API für detailliertere Spiele-Infos aufrufen

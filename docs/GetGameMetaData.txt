@@ -1,0 +1,95 @@
+http://spectator.euw1.lol.riotgames.com/observer-mode/rest/consumer/getGameMetaData/EUW1/2113365616/1/token
+
+{
+  "gameKey": {
+    "gameId": 2113365616,
+    "platformId": "EUW1"
+  },
+  "gameServerAddress": "",
+  "port": 0,
+  "encryptionKey": "",
+  "chunkTimeInterval": 30000,
+  "startTime": "May 17, 2015 8:26:48 PM",
+  "endTime": "May 17, 2015 9:01:47 PM",
+  "gameEnded": true,
+  "lastChunkId": 73,
+  "lastKeyFrameId": 35,
+  "endStartupChunkId": 2,
+  "delayTime": 150000,
+  "pendingAvailableChunkInfo": [
+    {
+      "id": 66,
+      "duration": 29998,
+      "receivedTime": "May 17, 2015 8:58:18 PM"
+    },
+    {
+      "id": 67,
+      "duration": 30020,
+      "receivedTime": "May 17, 2015 8:58:48 PM"
+    },
+    {
+      "id": 68,
+      "duration": 29979,
+      "receivedTime": "May 17, 2015 8:59:18 PM"
+    },
+    {
+      "id": 69,
+      "duration": 30012,
+      "receivedTime": "May 17, 2015 8:59:48 PM"
+    },
+    {
+      "id": 70,
+      "duration": 29983,
+      "receivedTime": "May 17, 2015 9:00:18 PM"
+    },
+    {
+      "id": 71,
+      "duration": 29999,
+      "receivedTime": "May 17, 2015 9:00:48 PM"
+    },
+    {
+      "id": 72,
+      "duration": 30002,
+      "receivedTime": "May 17, 2015 9:01:18 PM"
+    },
+    {
+      "id": 73,
+      "duration": 29165,
+      "receivedTime": "May 17, 2015 9:01:47 PM"
+    }
+  ],
+  "pendingAvailableKeyFrameInfo": [
+    {
+      "id": 32,
+      "receivedTime": "May 17, 2015 8:58:18 PM",
+      "nextChunkId": 66
+    },
+    {
+      "id": 33,
+      "receivedTime": "May 17, 2015 8:59:18 PM",
+      "nextChunkId": 68
+    },
+    {
+      "id": 34,
+      "receivedTime": "May 17, 2015 9:00:18 PM",
+      "nextChunkId": 70
+    },
+    {
+      "id": 35,
+      "receivedTime": "May 17, 2015 9:01:18 PM",
+      "nextChunkId": 72
+    }
+  ],
+  "keyFrameTimeInterval": 60000,
+  "decodedEncryptionKey": "",
+  "startGameChunkId": 4,
+  "gameLength": 2099177,
+  "clientAddedLag": 30000,
+  "clientBackFetchingEnabled": false,
+  "clientBackFetchingFreq": 1000,
+  "interestScore": 2745,
+  "featuredGame": true,
+  "createTime": "May 17, 2015 8:25:52 PM",
+  "endGameChunkId": 73,
+  "endGameKeyFrameId": 35
+}

@@ -1,0 +1,13 @@
+http://spectator.euw1.lol.riotgames.com/observer-mode/rest/consumer/getLastChunkInfo/EUW1/2113365616/1/token
+
+{
+  "chunkId": 73,
+  "availableSince": 2105518,
+  "nextAvailableChunk": 0,
+  "keyFrameId": 35,
+  "nextChunkId": 72,
+  "endStartupChunkId": 2,
+  "startGameChunkId": 4,
+  "endGameChunkId": 73,
+  "duration": 29165
+}
