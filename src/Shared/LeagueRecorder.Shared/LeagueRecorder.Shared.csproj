@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="League\GameMetaData.cs" />
     <Compile Include="League\Region.cs" />
     <Compile Include="League\SpectatorGameInfo.cs" />
     <Compile Include="League\Summoner.cs" />
