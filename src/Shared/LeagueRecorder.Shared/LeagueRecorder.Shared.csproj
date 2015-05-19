@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="League\Region.cs" />
+    <Compile Include="League\SpectatorGameInfo.cs" />
     <Compile Include="League\Summoner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Results\Result.cs" />
