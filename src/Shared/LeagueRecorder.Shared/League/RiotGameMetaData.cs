@@ -2,7 +2,7 @@
 
 namespace LeagueRecorder.Shared.League
 {
-    public class GameMetaData
+    public class RiotGameMetaData
     {
         public long GameId { get; set; }
         public string Region { get; set; }
@@ -13,10 +13,8 @@ namespace LeagueRecorder.Shared.League
         public int EndStartupChunkId { get; set; }
         public int LastChunkId { get; set; }
         public int LastKeyFrameId { get; set; }
-    }
+        public bool GameEnded { get; set; }
 
-    public class LastChunkInfo
-    {
-        
+        public string OriginalJsonResponse { get; set; }
     }
 }

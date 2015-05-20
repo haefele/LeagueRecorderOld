@@ -6,8 +6,8 @@ namespace LeagueRecorder.Server.Contracts.League
 {
     public interface ILeagueApiClient
     {
-        Task<Result<Summoner>> GetSummonerBySummonerNameAsync(Region region, string summonerName);
+        Task<Result<RiotSummoner>> GetSummonerBySummonerNameAsync(Region region, string summonerName);
 
-        Task<Result<SpectatorGameInfo>> GetCurrentGame(Region region, long summonerId);
+        Task<Result<RiotSpectatorGameInfo>> GetCurrentGameAsync(Region region, long summonerId);
     }
 }

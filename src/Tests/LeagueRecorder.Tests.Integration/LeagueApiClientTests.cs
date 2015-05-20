@@ -24,7 +24,7 @@ namespace LeagueRecorder.Tests.Integration
         public async Task GetCurrentGameInfoShouldWorkForSummonerThatIsIngame()
         {
             var leagueApiClient = new LeagueApiClient(ApiKey);
-            var result = await leagueApiClient.GetCurrentGame(Region.EuropeWest, 21762912);
+            var result = await leagueApiClient.GetCurrentGameAsync(Region.EuropeWest, 21762912);
         }
     }
 }

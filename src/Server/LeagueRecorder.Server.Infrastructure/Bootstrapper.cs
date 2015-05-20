@@ -5,6 +5,8 @@ using System.Web.Http.ExceptionHandling;
 using Anotar.NLog;
 using Castle.MicroKernel.Registration;
 using Castle.Windsor;
+using Castle.Windsor.Installer;
+using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Infrastructure.Api.Configuration;
 using LeagueRecorder.Server.Infrastructure.Windsor;
 using Microsoft.AspNet.WebApi.MessageHandlers.Compression;
@@ -12,6 +14,7 @@ using Microsoft.AspNet.WebApi.MessageHandlers.Compression.Compressors;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Owin;
+using Raven.Client.Linq;
 
 namespace LeagueRecorder.Server.Infrastructure
 {
@@ -30,12 +33,17 @@ namespace LeagueRecorder.Server.Infrastructure
             LogTo.Debug("Creating the windsor container.");
 
             var container = new WindsorContainer();
-            container.Register(Classes.FromThisAssembly());
+            container.Install(FromAssembly.This());
 
             LogTo.Debug("Starting the http api.");
 
             var startOptions = new StartOptions(container.Resolve<IConfig>().Url);
             this._webApp = WebApp.Start(startOptions, f => this.StartHttpApi(f, container));
+
+            LogTo.Debug("Starting the summoners in game finder.");
+
+            var summonersInGameFinder = container.Resolve<ISummonersInGameFinder>();
+            summonersInGameFinder.Start();
         }
         #endregion
 

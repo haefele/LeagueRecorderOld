@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -14,7 +15,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
     public class LeagueApiClient : ILeagueApiClient
     {
         #region Fields
-        private readonly ApiKeyMessageHandler _apiKeyMessageHandler;
+        private readonly string _apiKey;
         #endregion
 
         #region Constructors
@@ -26,12 +27,12 @@ namespace LeagueRecorder.Server.Infrastructure.League
         {
             Guard.AgainstNullArgument("apiKey", apiKey);
 
-            this._apiKeyMessageHandler = new ApiKeyMessageHandler(apiKey);
+            this._apiKey = apiKey;
         }
         #endregion
 
         #region Methods
-        public async Task<Result<Summoner>> GetSummonerBySummonerNameAsync(Region region, string summonerName)
+        public async Task<Result<RiotSummoner>> GetSummonerBySummonerNameAsync(Region region, string summonerName)
         {
             Guard.AgainstNullArgument("summonerName", summonerName);
 
@@ -42,9 +43,9 @@ namespace LeagueRecorder.Server.Infrastructure.League
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var responseJson = JObject.Parse(responseString).Value<JObject>(summonerName);
+                var responseJson = JObject.Parse(responseString).First.First;
 
-                var summoner = new Summoner
+                var summoner = new RiotSummoner
                 {
                     Id = responseJson.Value<long>("id"),
                     Name = responseJson.Value<string>("name"),
@@ -63,7 +64,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
         }
 
-        public async Task<Result<SpectatorGameInfo>> GetCurrentGame(Region region, long summonerId)
+        public async Task<Result<RiotSpectatorGameInfo>> GetCurrentGameAsync(Region region, long summonerId)
         {
             HttpResponseMessage response = await this.GetClient(region)
                 .GetAsync(string.Format("observer-mode/rest/consumer/getSpectatorGameInfo/{0}/{1}", region.SpectatorPlatformId, summonerId))
@@ -74,7 +75,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                 var responseString = await response.Content.ReadAsStringAsync();
                 var responseJson = JObject.Parse(responseString);
 
-                var gameInfo = new SpectatorGameInfo
+                var gameInfo = new RiotSpectatorGameInfo
                 {
                     GameId = responseJson.Value<long>("gameId"),
                     GameLength = TimeSpan.FromSeconds(responseJson.Value<int>("gameLength")),
@@ -98,7 +99,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
         #region Private Methods
         private HttpClient GetClient(Region region)
         {
-            var client = HttpClientFactory.Create(this._apiKeyMessageHandler);
+            var client = HttpClientFactory.Create(new ApiKeyMessageHandler(this._apiKey));
             client.BaseAddress = new Uri(string.Format("{0}://{1}.api.pvp.net/", Uri.UriSchemeHttps, region.RiotApiPlatformId));
 
             return client;

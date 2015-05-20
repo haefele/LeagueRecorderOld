@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="League\ILeagueApiClient.cs" />
     <Compile Include="League\ILeagueSpectatorApiClient.cs" />
+    <Compile Include="League\ISummonersInGameFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

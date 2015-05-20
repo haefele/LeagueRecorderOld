@@ -2,7 +2,7 @@
 
 namespace LeagueRecorder.Shared.League
 {
-    public class SpectatorGameInfo
+    public class RiotSpectatorGameInfo
     {
         public long GameId { get; set; }
         public TimeSpan GameLength { get; set; }
