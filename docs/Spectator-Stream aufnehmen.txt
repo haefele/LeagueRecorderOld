@@ -10,3 +10,18 @@
         Außerdem jede Antwort von GetGameDataChunk und GetKeyFrame speichern
 4. Alle Daten in RavenDB/RavenFS pumpen
 5? Riot API für detailliertere Spiele-Infos aufrufen
+
+- Die Spectator-Client-Version mit dem Replay abspeichern
+  Außerdem die höchste aktuelle LoL Version (bekommt man durch die Riot API)
+
+- Einen Download-Link bereitstellen, dieser Download ist nur eine Exe-Datei
+  Diese Exe-Datei enthält alle Informationen (Chunks, KeyFrames) die benötigt werden um das Replay auszuführen
+  Außerdem auch die Versionen die man dafür benötigt
+  D. h. in der Exe kann der Benutzer die "League of Legends.exe" auswählen und dann spielt die Exe selbst das Replay ab
+  Gleichzeitig kann man hier auf die früheren LoL Versionen verweisen die von BaronReplay bereitgestellt werden
+  Dadurch werden diese Replays auch nicht out-dated
+
+- Evtl muss die Web-API für "Aktuelle Spectator Version" IP-Speziallisiert funktionieren
+  Das heißt, dass der Client zunächst eine Anfrage machen muss "Hey ich möchte dieses Replay abspielen"
+  Ab diesem Zeitpunkt kann nämlich der Server bei dem Endpunkt für "Aktuelle Spectator Version" nach der Client-IP filtern
+  Und diesem Client genau die Version zurückliefern die er benötigt für das Replay
