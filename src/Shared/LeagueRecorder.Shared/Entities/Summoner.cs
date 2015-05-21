@@ -2,7 +2,7 @@
 
 namespace LeagueRecorder.Shared.Entities
 {
-    public class Summoner
+    public class Summoner : AggregateRoot
     {
         public static string CreateId(string region, long summonerId)
         {

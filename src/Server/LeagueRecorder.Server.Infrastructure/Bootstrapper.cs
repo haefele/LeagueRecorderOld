@@ -14,6 +14,8 @@ using Microsoft.AspNet.WebApi.MessageHandlers.Compression.Compressors;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Owin;
+using Raven.Client;
+using Raven.Client.Indexes;
 using Raven.Client.Linq;
 
 namespace LeagueRecorder.Server.Infrastructure
@@ -34,6 +36,10 @@ namespace LeagueRecorder.Server.Infrastructure
 
             var container = new WindsorContainer();
             container.Install(FromAssembly.This());
+
+            LogTo.Debug("Creating RavenDB indexes.");
+            var documentStore = container.Resolve<IDocumentStore>();
+            IndexCreation.CreateIndexes(this.GetType().Assembly, documentStore);
 
             LogTo.Debug("Starting the http api.");
 

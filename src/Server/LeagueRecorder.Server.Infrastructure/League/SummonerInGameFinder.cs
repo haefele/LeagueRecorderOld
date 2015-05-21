@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
+using Anotar.NLog;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Infrastructure.Raven.Indexes;
 using LeagueRecorder.Shared.Entities;
@@ -82,33 +83,40 @@ namespace LeagueRecorder.Server.Infrastructure.League
         /// <param name="elapsedEventArgs">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
         private async void TimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            this._timer.Stop();
-
-            using (var session = this._documentStore.OpenAsyncSession())
+            try
             {
-                //Order the results here so we always get the "oldest" summoners
-                IList<Summoner> summoners = await session.Query<Summoner, SummonersForQuery>()
-                    .Where(f => f.LastCheckIfInGameDate <= DateTimeOffset.Now.AddSeconds(-this._config.IntervalToCheckForSummonersThatAreIngameInSeconds))
-                    .OrderBy(f => f.LastCheckIfInGameDate)
-                    .Take(50)
-                    .ToListAsync();
+                this._timer.Stop();
 
-                foreach(var summoner in summoners)
+                using (var session = this._documentStore.OpenAsyncSession())
                 {
-                    Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
+                    //Order the results here so we always get the "oldest" summoners
+                    IList<Summoner> summoners = await session.Query<Summoner, SummonersForQuery>()
+                        .Where(f => f.LastCheckIfInGameDate <= DateTimeOffset.Now.AddSeconds(-this._config.IntervalToCheckForSummonersThatAreIngameInSeconds))
+                        .OrderBy(f => f.LastCheckIfInGameDate)
+                        .Take(50)
+                        .ToListAsync();
 
-                    if (currentGameResult.IsSuccess)
+                    foreach(var summoner in summoners)
                     {
-                        //TODO: Spectate the Game
+                        Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
+
+                        if (currentGameResult.IsSuccess)
+                        {
+                            //TODO: Spectate the Game
+                        }
+
+                        summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
                     }
 
-                    summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
+                    await session.SaveChangesAsync();
                 }
 
-                await session.SaveChangesAsync();
+                this._timer.Start();
             }
-
-            this._timer.Start();
+            catch (Exception exception)
+            {
+                LogTo.ErrorException("Exception while checking if summoners are ingame.", exception);
+            }
         }
         #endregion
 
