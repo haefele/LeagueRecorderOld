@@ -154,6 +154,10 @@
       <Project>{5D95EA99-8A83-4A55-8BE2-87BCB43964DC}</Project>
       <Name>LeagueRecorder.Server.Contracts</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LeagueRecorder.Server.Localization\LeagueRecorder.Server.Localization.csproj">
+      <Project>{5B71173D-A956-4D24-B2C6-DBAA96F51635}</Project>
+      <Name>LeagueRecorder.Server.Localization</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

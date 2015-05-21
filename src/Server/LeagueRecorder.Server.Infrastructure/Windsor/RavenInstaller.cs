@@ -78,10 +78,15 @@ namespace LeagueRecorder.Server.Infrastructure.Windsor
         /// <param name="documentStore">The document store.</param>
         private void CustomizeRavenDocumentStore(DocumentStore documentStore)
         {
-            documentStore.Conventions.RegisterAsyncIdConvention<Summoner>((databaseName, commands, entity) =>
-            {
-                return Task.FromResult(Summoner.CreateId(entity.Region, entity.SummonerId));
-            });
+            documentStore.Conventions.RegisterIdConvention<Summoner>((databaseName, commands, entity) => 
+                Summoner.CreateId(entity.Region, entity.SummonerId));
+            documentStore.Conventions.RegisterAsyncIdConvention<Summoner>((databaseName, commands, entity) => 
+                Task.FromResult(Summoner.CreateId(entity.Region, entity.SummonerId)));
+
+            documentStore.Conventions.RegisterIdConvention<GlobalConfiguration>((databaseName, commands, entity) =>
+                GlobalConfiguration.CreateId());
+            documentStore.Conventions.RegisterAsyncIdConvention<GlobalConfiguration>((databaseName, commands, entity) => 
+                Task.FromResult(GlobalConfiguration.CreateId()));
         }
         #endregion
     }

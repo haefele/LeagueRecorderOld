@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
 using Microsoft.Owin;
@@ -43,7 +44,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
             else
             {
-                return Result.AsError("Error");
+                return Result.AsError(Messages.UnexpectedError);
             }
         }
 
@@ -68,7 +69,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
             else
             {
-                return Result.AsError("Error");
+                return Result.AsError(Messages.UnexpectedError);
             }
         }
 
@@ -92,7 +93,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
             else
             {
-                return Result.AsError("Error");
+                return Result.AsError(Messages.UnexpectedError);
             }
         }
 
@@ -116,7 +117,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
             else
             {
-                return Result.AsError("Error");
+                return Result.AsError(Messages.UnexpectedError);
             }
         }
 

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
@@ -56,11 +57,11 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                return Result.AsError("Summoner not found.");
+                return Result.AsError(Messages.SummonerNotFound);
             }
             else
             {
-                return Result.AsError("Unexpected error.");
+                return Result.AsError(Messages.UnexpectedError);
             }
         }
 
@@ -87,11 +88,11 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                return Result.AsError("Summoner is currently not ingame.");
+                return Result.AsError(Messages.SummonerNotInGame);
             }
             else
             {
-                return Result.AsError("Unexpected error.");
+                return Result.AsError(Messages.UnexpectedError);
             }
         }
         #endregion

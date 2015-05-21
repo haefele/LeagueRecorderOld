@@ -5,6 +5,7 @@ using System.Web.Http;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Infrastructure.Extensions;
+using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
@@ -26,14 +27,14 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
             this._leagueApiClient = leagueApiClient;
         }
 
-        [Route("Summoners/{region}/{summonerName}")]
         [HttpPost]
+        [Route("Summoners/{region}/{summonerName}")]
         public async Task<HttpResponseMessage> AddSummonerAsync(string region, string summonerName)
         {
             Region actualRegion = Region.FromString(region);
 
             if (actualRegion == null || string.IsNullOrWhiteSpace(summonerName))
-                return this.Request.GetMessageWithError(HttpStatusCode.BadRequest, "");
+                return this.Request.GetMessageWithError(HttpStatusCode.BadRequest, Messages.InvalidArguments);
 
             Result<RiotSummoner> summoner = await this._leagueApiClient.GetSummonerBySummonerNameAsync(actualRegion, summonerName);
 

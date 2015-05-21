@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueRecorder.Shared", "Sh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueRecorder.Tests.Integration", "Tests\LeagueRecorder.Tests.Integration\LeagueRecorder.Tests.Integration.csproj", "{AE2F2B32-0D6A-4CD9-8D3F-DFBA59802485}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeagueRecorder.Server.Localization", "Server\LeagueRecorder.Server.Localization\LeagueRecorder.Server.Localization.csproj", "{5B71173D-A956-4D24-B2C6-DBAA96F51635}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{AE2F2B32-0D6A-4CD9-8D3F-DFBA59802485}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE2F2B32-0D6A-4CD9-8D3F-DFBA59802485}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE2F2B32-0D6A-4CD9-8D3F-DFBA59802485}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B71173D-A956-4D24-B2C6-DBAA96F51635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B71173D-A956-4D24-B2C6-DBAA96F51635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B71173D-A956-4D24-B2C6-DBAA96F51635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B71173D-A956-4D24-B2C6-DBAA96F51635}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,5 +64,6 @@ Global
 		{6D588E72-F3E6-4C6B-BDD1-4745ED32AC2B} = {F434BDFA-19AB-4C38-977E-BC5F796E3D62}
 		{667B9DA3-41DD-4031-BE7B-A8499A0C0EFB} = {7B530841-3687-4BD1-B479-C69285A2B4B0}
 		{AE2F2B32-0D6A-4CD9-8D3F-DFBA59802485} = {79C8C44F-6943-4045-B464-B75CAC877DF6}
+		{5B71173D-A956-4D24-B2C6-DBAA96F51635} = {23A8597D-6E98-4950-93AC-5F9D19213197}
 	EndGlobalSection
 EndGlobal

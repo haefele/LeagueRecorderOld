@@ -9,6 +9,7 @@ using Castle.Windsor.Installer;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Infrastructure.Api.Configuration;
 using LeagueRecorder.Server.Infrastructure.Windsor;
+using LeagueRecorder.Shared.Entities;
 using Microsoft.AspNet.WebApi.MessageHandlers.Compression;
 using Microsoft.AspNet.WebApi.MessageHandlers.Compression.Compressors;
 using Microsoft.Owin.Cors;
@@ -38,8 +39,27 @@ namespace LeagueRecorder.Server.Infrastructure
             container.Install(FromAssembly.This());
 
             LogTo.Debug("Creating RavenDB indexes.");
+
             var documentStore = container.Resolve<IDocumentStore>();
             IndexCreation.CreateIndexes(this.GetType().Assembly, documentStore);
+
+            LogTo.Debug("Ensuring system configuration document exists.");
+
+            using (var documentSession = documentStore.OpenSession())
+            {
+                var config = documentSession.Load<GlobalConfiguration>(GlobalConfiguration.CreateId());
+                
+                if (config == null)
+                {
+                    config = new GlobalConfiguration
+                    {
+                        Id = GlobalConfiguration.CreateId()
+                    };
+                    documentSession.Store(config);
+
+                    documentSession.SaveChanges();
+                }
+            }
 
             LogTo.Debug("Starting the http api.");
 
