@@ -61,7 +61,7 @@ namespace LeagueRecorder.Server.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Invalid arguments..
         /// </summary>
         public static string InvalidArguments {
             get {
@@ -70,7 +70,16 @@ namespace LeagueRecorder.Server.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to The Riot API rate limit was exceeded..
+        /// </summary>
+        public static string RateLimitExceeded {
+            get {
+                return ResourceManager.GetString("RateLimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summoner not found..
         /// </summary>
         public static string SummonerNotFound {
             get {
@@ -79,7 +88,7 @@ namespace LeagueRecorder.Server.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Summoner is not ingame..
         /// </summary>
         public static string SummonerNotInGame {
             get {
@@ -88,7 +97,7 @@ namespace LeagueRecorder.Server.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Unexpected error..
         /// </summary>
         public static string UnexpectedError {
             get {

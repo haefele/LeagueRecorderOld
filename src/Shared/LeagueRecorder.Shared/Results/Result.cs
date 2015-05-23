@@ -19,11 +19,18 @@ namespace LeagueRecorder.Shared.Results
 
         #region Properties
         /// <summary>
-        /// Gets a value indicating whether <see cref="State"/> is <see cref="ResultState.Success"/> or <see cref="ResultState.Warning"/>.
+        /// Gets a value indicating whether <see cref="State"/> is <see cref="ResultState.Success"/>.
         /// </summary>
         public bool IsSuccess
         {
-            get { return !this.IsError; }
+            get { return this.State == ResultState.Success; }
+        }
+        /// <summary>
+        /// Gets a value indicating whether <see cref="State"/> is <see cref="ResultState.Warning"/>.
+        /// </summary>
+        public bool IsWarning
+        {
+            get { return this.State == ResultState.Warning; }
         }
         /// <summary>
         /// Gets a value indicating whether <see cref="State"/> is <see cref="ResultState.Error"/>.

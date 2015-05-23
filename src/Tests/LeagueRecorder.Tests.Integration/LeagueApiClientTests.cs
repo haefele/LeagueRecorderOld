@@ -14,6 +14,13 @@ namespace LeagueRecorder.Tests.Integration
         public const string ApiKey = "4ad9233d-1f05-47f5-a5be-219adb783147";
 
         [Fact]
+        public async Task GetLatestLeagueVersion()
+        {
+            var leagueApiClient = new LeagueApiClient(ApiKey);
+            var result = await leagueApiClient.GetLeagueVersion(Region.EuropeWest);
+        }
+
+        [Fact]
         public async Task GetASummonerForSummonerName()
         {
             var leagueApiClient = new LeagueApiClient(ApiKey);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using Anotar.NLog;
+using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Infrastructure.Raven.Indexes;
 using LeagueRecorder.Shared.Entities;
@@ -21,12 +22,13 @@ namespace LeagueRecorder.Server.Infrastructure.League
         private readonly IConfig _config;
         private readonly IDocumentStore _documentStore;
         private readonly ILeagueApiClient _leagueApiClient;
-        
+        private readonly IRecordingManager _recordingManager;
+
         private readonly object _isStartedLock = new object();
 
         private Timer _timer;
         #endregion
-
+        
         #region Properties
         /// <summary>
         /// Gets a value indicating whether this instance started looking for summoners that are in game.
@@ -35,21 +37,25 @@ namespace LeagueRecorder.Server.Infrastructure.League
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SummonerInGameFinder"/> class.
         /// </summary>
         /// <param name="config">The configuration.</param>
         /// <param name="documentStore">The document store.</param>
         /// <param name="leagueApiClient">The league API client.</param>
-        public SummonerInGameFinder(IConfig config, IDocumentStore documentStore, ILeagueApiClient leagueApiClient)
+        /// <param name="recordingManager">The recording manager.</param>
+        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]IDocumentStore documentStore, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IRecordingManager recordingManager)
         {
             Guard.AgainstNullArgument("config", config);
             Guard.AgainstNullArgument("documentStore", documentStore);
             Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
+            Guard.AgainstNullArgument("recordingManager", recordingManager);
 
             this._config = config;
             this._documentStore = documentStore;
             this._leagueApiClient = leagueApiClient;
+            this._recordingManager = recordingManager;
         }
         #endregion
 
@@ -100,12 +106,21 @@ namespace LeagueRecorder.Server.Infrastructure.League
                     {
                         Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
 
-                        if (currentGameResult.IsSuccess)
+                        if (currentGameResult.IsSuccess || currentGameResult.IsWarning)
                         {
-                            //TODO: Spectate the Game
+                            summoner.LastCheckIfInGameDate = DateTimeOffset.Now;   
                         }
 
-                        summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
+                        if (currentGameResult.IsSuccess)
+                        {
+                            LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
+                            
+                            this._recordingManager.Record(currentGameResult.Data);
+                        }
+                        else
+                        {
+                            LogTo.Debug("The summoner {0} ({1} {2}) is currently NOT in game: {3}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
+                        }
                     }
 
                     await session.SaveChangesAsync();

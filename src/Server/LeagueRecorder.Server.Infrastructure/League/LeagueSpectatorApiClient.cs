@@ -1,19 +1,36 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
-using Microsoft.Owin;
 using Newtonsoft.Json.Linq;
 
 namespace LeagueRecorder.Server.Infrastructure.League
 {
     public class LeagueSpectatorApiClient : ILeagueSpectatorApiClient
     {
+        public async Task<Result<Version>> GetSpectatorVersion(Region region)
+        {
+            var response = await this.GetClient(region)
+                .GetAsync("observer-mode/rest/consumer/version")
+                .ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var version = Version.Parse(responseString);
+
+                return Result.AsSuccess(version);
+            }
+            else
+            {
+                return Result.AsError(Messages.UnexpectedError);
+            }
+        }
+
         public async Task<Result<RiotGameMetaData>> GetGameMetaData(Region region, long gameId)
         {
             HttpResponseMessage response = await this.GetClient(region)
@@ -48,7 +65,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
         }
 
-        public async Task<Result<RiotLastChunkInfo>> GetLastChunkInfo(Region region, long gameId)
+        public async Task<Result<RiotLastGameInfo>> GetLastGameInfo(Region region, long gameId)
         {
             var response = await this.GetClient(region)
                 .GetAsync(string.Format("observer-mode/rest/consumer/getLastChunkInfo/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
@@ -59,10 +76,12 @@ namespace LeagueRecorder.Server.Infrastructure.League
                 var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var responseJson = JObject.Parse(responseString);
 
-                var lastChunkInfo = new RiotLastChunkInfo
+                var lastChunkInfo = new RiotLastGameInfo
                 {
                     CurrentChunkId = responseJson.Value<int>("chunkId"),
-                    OriginalJsonResponse = responseString
+                    CurrentKeyFrameId = responseJson.Value<int>("keyFrameId"),
+                    OriginalJsonResponse = responseString,
+                    EndGameChunkId = responseJson.Value<int>("endGameChunkId")
                 };
 
                 return Result.AsSuccess(lastChunkInfo);

@@ -59,9 +59,11 @@ namespace LeagueRecorder.Server.Infrastructure.Windsor
 
             ravenDbServer.DocumentStore.DefaultDatabase = config.RavenName;
             ravenDbServer.DocumentStore.DatabaseCommands.GlobalAdmin.EnsureDatabaseExists(ravenDbServer.DocumentStore.DefaultDatabase);
+            ravenDbServer.DocumentStore.Conventions.MaxNumberOfRequestsPerSession = int.MaxValue;
 
             ravenDbServer.FilesStore.DefaultFileSystem = config.RavenName;
             ravenDbServer.FilesStore.AsyncFilesCommands.Admin.EnsureFileSystemExistsAsync(ravenDbServer.FilesStore.DefaultFileSystem).Wait();
+            ravenDbServer.FilesStore.Conventions.MaxNumberOfRequestsPerSession = int.MaxValue;
 
             if (config.EnableRavenHttpServer)
             {
@@ -87,6 +89,11 @@ namespace LeagueRecorder.Server.Infrastructure.Windsor
                 GlobalConfiguration.CreateId());
             documentStore.Conventions.RegisterAsyncIdConvention<GlobalConfiguration>((databaseName, commands, entity) => 
                 Task.FromResult(GlobalConfiguration.CreateId()));
+
+            documentStore.Conventions.RegisterIdConvention<Recording>((databaseName, commands, entity) =>
+                Recording.CreateId(entity.Region, entity.GameId));
+            documentStore.Conventions.RegisterAsyncIdConvention<Recording>((databaseName, commands, entity) =>
+                Task.FromResult(Recording.CreateId(entity.Region, entity.GameId)));
         }
         #endregion
     }

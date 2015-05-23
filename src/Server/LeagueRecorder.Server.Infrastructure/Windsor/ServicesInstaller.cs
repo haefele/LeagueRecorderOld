@@ -13,8 +13,9 @@ namespace LeagueRecorder.Server.Infrastructure.Windsor
             container.Register(
                 Component.For<ILeagueApiClient>().UsingFactoryMethod((kernel, context) => new LeagueApiClient(kernel.Resolve<IConfig>().RiotApiKey)).LifestyleTransient(),
                 Component.For<ILeagueSpectatorApiClient>().ImplementedBy<LeagueSpectatorApiClient>().LifestyleTransient(),
-                Component.For<ISummonersInGameFinder>().ImplementedBy<SummonerInGameFinder>().LifestyleSingleton()
-                );
+                Component.For<ISummonersInGameFinder>().ImplementedBy<SummonerInGameFinder>().LifestyleSingleton(),
+                Component.For<IRecordingManager>().ImplementedBy<RecordingManager>().LifestyleSingleton()
+            );
         }
     }
 }
