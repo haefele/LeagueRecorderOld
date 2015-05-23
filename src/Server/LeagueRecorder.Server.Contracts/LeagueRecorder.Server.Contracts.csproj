@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="League\ILeagueApiClient.cs" />
     <Compile Include="League\ILeagueSpectatorApiClient.cs" />
-    <Compile Include="League\IRecordingManager.cs" />
+    <Compile Include="League\IGameRecorder.cs" />
     <Compile Include="League\ISummonersInGameFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

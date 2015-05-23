@@ -13,8 +13,8 @@ namespace LeagueRecorder.Shared.Entities
         public string Region { get; set; }
         public string EncryptionKey { get; set; }
 
-        public Version LeagueVersion { get; set; }
-        public Version SpectatorVersion { get; set; }
+        public string LeagueVersion { get; set; }
+        public string SpectatorVersion { get; set; }
 
         public string OriginalLastGameInfoJsonResponse { get; set; }
         public string OriginalGameMetaDataJsonResponse { get; set; }

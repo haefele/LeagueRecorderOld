@@ -22,7 +22,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
         private readonly IConfig _config;
         private readonly IDocumentStore _documentStore;
         private readonly ILeagueApiClient _leagueApiClient;
-        private readonly IRecordingManager _recordingManager;
+        private readonly IGameRecorder _gameRecorder;
 
         private readonly object _isStartedLock = new object();
 
@@ -44,18 +44,18 @@ namespace LeagueRecorder.Server.Infrastructure.League
         /// <param name="config">The configuration.</param>
         /// <param name="documentStore">The document store.</param>
         /// <param name="leagueApiClient">The league API client.</param>
-        /// <param name="recordingManager">The recording manager.</param>
-        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]IDocumentStore documentStore, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IRecordingManager recordingManager)
+        /// <param name="gameRecorder">The recording manager.</param>
+        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]IDocumentStore documentStore, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IGameRecorder gameRecorder)
         {
             Guard.AgainstNullArgument("config", config);
             Guard.AgainstNullArgument("documentStore", documentStore);
             Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
-            Guard.AgainstNullArgument("recordingManager", recordingManager);
+            Guard.AgainstNullArgument("GameRecorder", gameRecorder);
 
             this._config = config;
             this._documentStore = documentStore;
             this._leagueApiClient = leagueApiClient;
-            this._recordingManager = recordingManager;
+            this._gameRecorder = gameRecorder;
         }
         #endregion
 
@@ -115,7 +115,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                         {
                             LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
                             
-                            this._recordingManager.Record(currentGameResult.Data);
+                            this._gameRecorder.Record(currentGameResult.Data);
                         }
                         else
                         {

@@ -1,4 +1,6 @@
-﻿namespace LeagueRecorder.Server.Infrastructure
+﻿using JetBrains.Annotations;
+
+namespace LeagueRecorder.Server.Infrastructure
 {
     public interface IConfig
     {
@@ -9,5 +11,6 @@
         int RavenHttpServerPort { get; }
         string RavenName { get; }
         string RiotApiKey { get; }
+        bool RecordGames { get; }
     }
 }

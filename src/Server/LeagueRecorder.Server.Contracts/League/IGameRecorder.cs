@@ -2,7 +2,7 @@
 
 namespace LeagueRecorder.Server.Contracts.League
 {
-    public interface IRecordingManager
+    public interface IGameRecorder
     {
         void Record(RiotSpectatorGameInfo gameInfo);
     }

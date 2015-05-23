@@ -121,6 +121,8 @@
     <Compile Include="Api\Configuration\LeagueRecorderExceptionHandler.cs" />
     <Compile Include="Api\Configuration\LeagueRecorderExceptionLogger.cs" />
     <Compile Include="Api\Controllers\BaseController.cs" />
+    <Compile Include="Api\Controllers\DefaultController.cs" />
+    <Compile Include="Api\Controllers\RiotApiController.cs" />
     <Compile Include="Api\Controllers\SummonersController.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
@@ -128,7 +130,7 @@
     <Compile Include="League\ApiKeyMessageHandler.cs" />
     <Compile Include="League\LeagueApiClient.cs" />
     <Compile Include="League\LeagueSpectatorApiClient.cs" />
-    <Compile Include="League\RecordingManager.cs" />
+    <Compile Include="League\GameRecorder.cs" />
     <Compile Include="League\SummonerInGameFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Raven\Indexes\SummonersForQuery.cs" />

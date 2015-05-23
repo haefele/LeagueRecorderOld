@@ -66,10 +66,15 @@ namespace LeagueRecorder.Server.Infrastructure
             var startOptions = new StartOptions(container.Resolve<IConfig>().Url);
             this._webApp = WebApp.Start(startOptions, f => this.StartHttpApi(f, container));
 
-            LogTo.Debug("Starting the summoners in game finder.");
+            if (container.Resolve<IConfig>().RecordGames)
+            {
+                LogTo.Debug("Starting the summoners in game finder.");
 
-            var summonersInGameFinder = container.Resolve<ISummonersInGameFinder>();
-            summonersInGameFinder.Start();
+                var summonersInGameFinder = container.Resolve<ISummonersInGameFinder>();
+                summonersInGameFinder.Start();
+            }
+
+            LogTo.Debug("Finished startup.");
         }
         #endregion
 
@@ -161,6 +166,11 @@ namespace LeagueRecorder.Server.Infrastructure
         private void ConfigureRoutes(HttpConfiguration httpConfiguration, WindsorContainer container)
         {
             httpConfiguration.MapHttpAttributeRoutes();
+
+            httpConfiguration.Routes.MapHttpRoute(
+                name: "DefaultRoute",
+                routeTemplate: "{*uri}",
+                defaults: new {controller = "Default", uri = RouteParameter.Optional});
         }
         #endregion
 

@@ -54,6 +54,7 @@
     <Compile Include="Entities\GlobalConfiguration.cs" />
     <Compile Include="Entities\Recording.cs" />
     <Compile Include="Entities\Summoner.cs" />
+    <Compile Include="Files\Chunk.cs" />
     <Compile Include="League\RiotRecording.cs" />
     <Compile Include="League\RiotChunk.cs" />
     <Compile Include="League\RiotGameMetaData.cs" />

@@ -65,7 +65,9 @@ namespace LeagueRecorder.Shared.League
                 EuropeNordicAndEast
             };
 
-            return allRegions.FirstOrDefault(f => string.Equals(f.RiotApiPlatformId, platformId, StringComparison.InvariantCultureIgnoreCase));
+            return allRegions.FirstOrDefault(f => 
+                string.Equals(f.RiotApiPlatformId, platformId, StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(f.SpectatorPlatformId, platformId, StringComparison.InvariantCultureIgnoreCase));
         }
         #endregion
 

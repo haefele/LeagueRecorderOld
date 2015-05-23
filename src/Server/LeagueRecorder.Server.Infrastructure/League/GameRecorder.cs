@@ -10,6 +10,7 @@ using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Shared.Entities;
+using LeagueRecorder.Shared.Files;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
@@ -20,7 +21,7 @@ using Raven.Client.FileSystem;
 
 namespace LeagueRecorder.Server.Infrastructure.League
 {
-    public class RecordingManager : IRecordingManager, IDisposable
+    public class GameRecorder : IGameRecorder, IDisposable
     {
         #region Fields
         private readonly ILeagueSpectatorApiClient _spectatorApiClient;
@@ -34,13 +35,13 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="RecordingManager" /> class.
+        /// Initializes a new instance of the <see cref="GameRecorder" /> class.
         /// </summary>
         /// <param name="spectatorApiClient">The spectator API client.</param>
         /// <param name="leagueApiClient">The league API client.</param>
         /// <param name="documentStore">The document store.</param>
         /// <param name="filesStore">The files store.</param>
-        public RecordingManager([NotNull]ILeagueSpectatorApiClient spectatorApiClient, [NotNull]ILeagueApiClient leagueApiClient, IDocumentStore documentStore, IFilesStore filesStore)
+        public GameRecorder([NotNull]ILeagueSpectatorApiClient spectatorApiClient, [NotNull]ILeagueApiClient leagueApiClient, IDocumentStore documentStore, IFilesStore filesStore)
         {
             Guard.AgainstNullArgument("spectatorApiClient", spectatorApiClient);
             Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
@@ -231,13 +232,13 @@ namespace LeagueRecorder.Server.Infrastructure.League
                     GameId = recording.Game.GameId,
                     Region = recording.Game.Region,
                     EncryptionKey = recording.Game.EncryptionKey,
-                    LeagueVersion = recording.LeagueVersion,
-                    SpectatorVersion = recording.SpectatorVersion,
+                    LeagueVersion = recording.LeagueVersion.ToString(),
+                    SpectatorVersion = recording.SpectatorVersion.ToString(),
                     OriginalGameMetaDataJsonResponse = recording.GameMetaData.OriginalJsonResponse,
                     OriginalLastGameInfoJsonResponse = recording.GameInfo.OriginalJsonResponse
                 };
                 storedRecording.Id = Recording.CreateId(recording.Game.Region, recording.Game.GameId);
-
+                
                 await session.StoreAsync(storedRecording);
                 await session.SaveChangesAsync();
             }
@@ -246,7 +247,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             {
                 foreach(var chunk in recording.Chunks)
                 {
-                    var fileName = string.Format("Recording/{0}/{1}/Chunks/{2}", recording.Game.Region, recording.Game.GameId, chunk.Id);
+                    var fileName = Chunk.CreateId(recording.Game.Region, recording.Game.GameId, chunk.Id);
                     var stream = new MemoryStream(chunk.Data);
                     
                     filesSession.RegisterUpload(fileName, stream);
@@ -254,7 +255,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
                 foreach (var keyFrame in recording.KeyFrames)
                 {
-                    var fileName = string.Format("Recording/{0}/{1}/KeyFrames/{2}", recording.Game.Region, recording.Game.GameId, keyFrame.Id);
+                    var fileName = KeyFrame.CreateId(recording.Game.Region, recording.Game.GameId, keyFrame.Id);
                     var stream = new MemoryStream(keyFrame.Data);
 
                     filesSession.RegisterUpload(fileName, stream);
