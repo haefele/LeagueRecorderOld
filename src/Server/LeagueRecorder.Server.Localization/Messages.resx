@@ -117,8 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ChunkNotFound" xml:space="preserve">
+    <value>Chunk not found.</value>
+  </data>
+  <data name="GameNotFound" xml:space="preserve">
+    <value>Game not found.</value>
+  </data>
   <data name="InvalidArguments" xml:space="preserve">
     <value>Invalid arguments.</value>
+  </data>
+  <data name="KeyFrameNotFound" xml:space="preserve">
+    <value>Keyframe not found.</value>
   </data>
   <data name="RateLimitExceeded" xml:space="preserve">
     <value>The Riot API rate limit was exceeded.</value>

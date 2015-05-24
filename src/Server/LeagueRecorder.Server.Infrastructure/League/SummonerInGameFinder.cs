@@ -119,7 +119,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                         }
                         else
                         {
-                            LogTo.Debug("The summoner {0} ({1} {2}) is currently NOT in game: {3}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
+                            LogTo.Debug("The summoner {0} ({1} {2}) is currently NOT in game: {3}", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
                         }
                     }
 

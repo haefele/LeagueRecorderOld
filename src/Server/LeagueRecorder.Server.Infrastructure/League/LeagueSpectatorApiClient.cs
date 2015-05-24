@@ -49,12 +49,16 @@ namespace LeagueRecorder.Server.Infrastructure.League
                     EndStartupChunkId = responseJson.Value<int>("endStartupChunkId"),
                     GameId = responseJson.Value<JObject>("gameKey").Value<long>("gameId"),
                     GameLength = TimeSpan.FromMilliseconds(responseJson.Value<int>("gameLength")),
-                    LastChunkId = responseJson.Value<int>("lastChunkId"),
-                    LastKeyFrameId = responseJson.Value<int>("lastKeyFrameId"),
                     StartGameChunkId = responseJson.Value<int>("startGameChunkId"),
-                    GameEnded = responseJson.Value<bool>("gameEnded"),
                     Region = region.ToString(),
-                    OriginalJsonResponse = responseString
+                    ChunkTimeInterval = TimeSpan.FromMilliseconds(responseJson.Value<int>("chunkTimeInterval")),
+                    ClientAddedLag = TimeSpan.FromMilliseconds(responseJson.Value<int>("clientAddedLag")),
+                    CreateTime = DateTime.Parse(responseJson.Value<string>("createTime")),
+                    DelayTime = TimeSpan.FromMilliseconds(responseJson.Value<int>("delayTime")),
+                    EndTime = DateTime.Parse(responseJson.Value<string>("endTime")),
+                    InterestScore = responseJson.Value<int>("interestScore"),
+                    KeyFrameTimeInterval = TimeSpan.FromMilliseconds(responseJson.Value<int>("keyFrameTimeInterval")),
+                    StartTime = DateTime.Parse(responseJson.Value<string>("startTime"))
                 };
 
                 return Result.AsSuccess(gameMetaData);

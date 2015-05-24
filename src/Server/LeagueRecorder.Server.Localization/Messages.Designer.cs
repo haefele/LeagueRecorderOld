@@ -61,11 +61,38 @@ namespace LeagueRecorder.Server.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Chunk not found..
+        /// </summary>
+        public static string ChunkNotFound {
+            get {
+                return ResourceManager.GetString("ChunkNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Game not found..
+        /// </summary>
+        public static string GameNotFound {
+            get {
+                return ResourceManager.GetString("GameNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid arguments..
         /// </summary>
         public static string InvalidArguments {
             get {
                 return ResourceManager.GetString("InvalidArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keyframe not found..
+        /// </summary>
+        public static string KeyFrameNotFound {
+            get {
+                return ResourceManager.GetString("KeyFrameNotFound", resourceCulture);
             }
         }
         

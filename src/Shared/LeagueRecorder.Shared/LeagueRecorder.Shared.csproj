@@ -51,8 +51,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\AggregateRoot.cs" />
+    <Compile Include="Entities\GameInformations.cs" />
     <Compile Include="Entities\GlobalConfiguration.cs" />
     <Compile Include="Entities\Recording.cs" />
+    <Compile Include="Entities\ReplayInformations.cs" />
     <Compile Include="Entities\Summoner.cs" />
     <Compile Include="Files\Chunk.cs" />
     <Compile Include="League\RiotRecording.cs" />

@@ -173,6 +173,25 @@ namespace LeagueRecorder.Shared.Results
                 return Result.FromException(exception);
             }
         }
+        /// <summary>
+        /// Creates a new <see cref="Result"/> containing <see cref="Result{T}.State"/> = <see cref="ResultState.Success"/> if the specified <paramref name="action"/> could be executed without a <see cref="Exception"/>.
+        /// If a <see cref="Exception"/> occured the <see cref="Result{T}.State"/> will equal to <see cref="ResultState.Error"/>.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        public static async Task<Result> CreateAsync(Func<Task> action)
+        {
+            Guard.AgainstNullArgument("action", action);
+
+            try
+            {
+                await action().ConfigureAwait(false);
+                return Result.AsSuccess();
+            }
+            catch (Exception exception)
+            {
+                return Result.FromException(exception);
+            }
+        }
         #endregion
     }
 }

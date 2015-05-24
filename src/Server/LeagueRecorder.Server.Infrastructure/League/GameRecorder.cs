@@ -1,23 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
-using LeagueRecorder.Shared.Entities;
-using LeagueRecorder.Shared.Files;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Raven.Client;
-using Raven.Client.FileSystem;
 
 namespace LeagueRecorder.Server.Infrastructure.League
 {
@@ -26,8 +18,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
         #region Fields
         private readonly ILeagueSpectatorApiClient _spectatorApiClient;
         private readonly ILeagueApiClient _leagueApiClient;
-        private readonly IDocumentStore _documentStore;
-        private readonly IFilesStore _filesStore;
+        private readonly IRecordingManager _recordingManager;
 
         private readonly Timer _timer;
         private readonly ConcurrentDictionary<RiotRecording, object> _recordings;
@@ -39,19 +30,16 @@ namespace LeagueRecorder.Server.Infrastructure.League
         /// </summary>
         /// <param name="spectatorApiClient">The spectator API client.</param>
         /// <param name="leagueApiClient">The league API client.</param>
-        /// <param name="documentStore">The document store.</param>
-        /// <param name="filesStore">The files store.</param>
-        public GameRecorder([NotNull]ILeagueSpectatorApiClient spectatorApiClient, [NotNull]ILeagueApiClient leagueApiClient, IDocumentStore documentStore, IFilesStore filesStore)
+        /// <param name="recordingManager">The recording manager.</param>
+        public GameRecorder([NotNull]ILeagueSpectatorApiClient spectatorApiClient, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IRecordingManager recordingManager)
         {
             Guard.AgainstNullArgument("spectatorApiClient", spectatorApiClient);
             Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
-            Guard.AgainstNullArgument("documentStore", documentStore);
-            Guard.AgainstNullArgument("filesStore", filesStore);
+            Guard.AgainstNullArgument("recordingManager", recordingManager);
 
             this._spectatorApiClient = spectatorApiClient;
             this._leagueApiClient = leagueApiClient;
-            this._documentStore = documentStore;
-            this._filesStore = filesStore;
+            this._recordingManager = recordingManager;
 
             this._timer = new Timer();
             this._timer.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
@@ -91,8 +79,8 @@ namespace LeagueRecorder.Server.Infrastructure.League
         {
             this._timer.Stop();
 
-            await this.DownloadSpectatorInfo();
-            await this.SaveFinishedGames();
+            await this.DownloadSpectatorInfo().ConfigureAwait(false);
+            await this.SaveFinishedGames().ConfigureAwait(false);
 
             this._timer.Start();
         }
@@ -105,7 +93,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                 {
                     LogTo.Debug("Updating league version of game {0} {1}.", recording.Game.Region, recording.Game.GameId);
 
-                    Result<Version> leagueVersionResult = await this._leagueApiClient.GetLeagueVersion(Region.FromString(recording.Game.Region));
+                    Result<Version> leagueVersionResult = await this._leagueApiClient.GetLeagueVersion(Region.FromString(recording.Game.Region)).ConfigureAwait(false);
 
                     if (leagueVersionResult.IsSuccess)
                     {
@@ -118,7 +106,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                 {
                     LogTo.Debug("Updating spectator version of game {0} {1}.", recording.Game.Region, recording.Game.GameId);
 
-                    Result<Version> spectatorVersionResult = await this._spectatorApiClient.GetSpectatorVersion(Region.FromString(recording.Game.Region));
+                    Result<Version> spectatorVersionResult = await this._spectatorApiClient.GetSpectatorVersion(Region.FromString(recording.Game.Region)).ConfigureAwait(false);
 
                     if (spectatorVersionResult.IsSuccess)
                     {
@@ -127,7 +115,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                     }
                 }
 
-                Result<RiotLastGameInfo> lastGameInfo = await this._spectatorApiClient.GetLastGameInfo(Region.FromString(recording.Game.Region), recording.Game.GameId);
+                Result<RiotLastGameInfo> lastGameInfo = await this._spectatorApiClient.GetLastGameInfo(Region.FromString(recording.Game.Region), recording.Game.GameId).ConfigureAwait(false);
 
                 if (lastGameInfo.IsError)
                 {
@@ -153,7 +141,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
                     LogTo.Debug("Downloading chunk {0} for game {1} {2}.", maxRecordedChunkId, recording.Game.Region, recording.Game.GameId);
 
-                    Result<RiotChunk> chunkResult = await this._spectatorApiClient.GetChunk(Region.FromString(recording.Game.Region), recording.Game.GameId, maxRecordedChunkId);
+                    Result<RiotChunk> chunkResult = await this._spectatorApiClient.GetChunk(Region.FromString(recording.Game.Region), recording.Game.GameId, maxRecordedChunkId).ConfigureAwait(false);
 
                     if (chunkResult.IsError)
                         continue;
@@ -173,7 +161,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
                     LogTo.Debug("Downloading keyframe {0} for game {1} {2}.", maxRecordedKeyFrameId, recording.Game.Region, recording.Game.GameId);
 
-                    Result<RiotKeyFrame> keyFrameResult = await this._spectatorApiClient.GetKeyFrame(Region.FromString(recording.Game.Region), recording.Game.GameId, maxRecordedKeyFrameId);
+                    Result<RiotKeyFrame> keyFrameResult = await this._spectatorApiClient.GetKeyFrame(Region.FromString(recording.Game.Region), recording.Game.GameId, maxRecordedKeyFrameId).ConfigureAwait(false);
 
                     if (keyFrameResult.IsError)
                         continue;
@@ -185,7 +173,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                 {
                     LogTo.Debug("The game {0} {1} has ended in chunk {2}. Downloading game meta data now.", recording.Game.Region, recording.Game.GameId, lastGameInfo.Data.EndGameChunkId);
 
-                    Result<RiotGameMetaData> metaDataResult = await this._spectatorApiClient.GetGameMetaData(Region.FromString(recording.Game.Region), recording.Game.GameId);
+                    Result<RiotGameMetaData> metaDataResult = await this._spectatorApiClient.GetGameMetaData(Region.FromString(recording.Game.Region), recording.Game.GameId).ConfigureAwait(false);
 
                     if (metaDataResult.IsSuccess)
                     {
@@ -197,22 +185,23 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
         private async Task SaveFinishedGames()
         {
-            if (this._recordings.Keys.Any())
+            var finishedRecordings = this._recordings.Keys
+                .Where(f => f.GameMetaData != null &&
+                            f.Chunks.Any(d => d.Id == f.GameMetaData.EndGameChunkId) &&
+                            f.KeyFrames.Any(d => d.Id == f.GameMetaData.EndGameKeyFrameId))
+                .ToList();
+
+            if (finishedRecordings.Any())
                 LogTo.Debug("Saving all finished recordings.");
 
-            foreach (RiotRecording recording in new List<RiotRecording>(this._recordings.Keys))
+            foreach (RiotRecording recording in finishedRecordings)
             {
-                if (recording.GameMetaData != null && 
-                    recording.Chunks.Any(f => f.Id == recording.GameMetaData.EndGameChunkId) && 
-                    recording.KeyFrames.Any(f => f.Id == recording.GameMetaData.EndGameKeyFrameId))
-                {
-                    LogTo.Debug("The recording for game {0} {1} has finished. Saving it into the database.", recording.Game.Region, recording.Game.GameId);
+                LogTo.Debug("The recording for game {0} {1} has finished. Saving it into the database.", recording.Game.Region, recording.Game.GameId);
 
-                    object output;
-                    this._recordings.TryRemove(recording, out output);
+                object output;
+                this._recordings.TryRemove(recording, out output);
 
-                    await this.SaveGameRecordingIntoDatabase(recording);
-                }
+                await this.SaveGameRecordingIntoDatabase(recording).ConfigureAwait(false);
             }
         }
 
@@ -225,44 +214,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                 return;
             }
 
-            using (var session = this._documentStore.OpenAsyncSession())
-            {
-                var storedRecording = new Recording
-                {
-                    GameId = recording.Game.GameId,
-                    Region = recording.Game.Region,
-                    EncryptionKey = recording.Game.EncryptionKey,
-                    LeagueVersion = recording.LeagueVersion.ToString(),
-                    SpectatorVersion = recording.SpectatorVersion.ToString(),
-                    OriginalGameMetaDataJsonResponse = recording.GameMetaData.OriginalJsonResponse,
-                    OriginalLastGameInfoJsonResponse = recording.GameInfo.OriginalJsonResponse
-                };
-                storedRecording.Id = Recording.CreateId(recording.Game.Region, recording.Game.GameId);
-                
-                await session.StoreAsync(storedRecording);
-                await session.SaveChangesAsync();
-            }
-
-            using (var filesSession = this._filesStore.OpenAsyncSession())
-            {
-                foreach(var chunk in recording.Chunks)
-                {
-                    var fileName = Chunk.CreateId(recording.Game.Region, recording.Game.GameId, chunk.Id);
-                    var stream = new MemoryStream(chunk.Data);
-                    
-                    filesSession.RegisterUpload(fileName, stream);
-                }
-
-                foreach (var keyFrame in recording.KeyFrames)
-                {
-                    var fileName = KeyFrame.CreateId(recording.Game.Region, recording.Game.GameId, keyFrame.Id);
-                    var stream = new MemoryStream(keyFrame.Data);
-
-                    filesSession.RegisterUpload(fileName, stream);
-                }
-
-                await filesSession.SaveChangesAsync();
-            }
+            await this._recordingManager.SaveGameRecordingAsync(recording).ConfigureAwait(false);
         }
         #endregion
 
