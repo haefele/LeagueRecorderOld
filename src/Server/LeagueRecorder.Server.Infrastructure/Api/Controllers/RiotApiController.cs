@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -57,6 +58,8 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
 
+            this.RememberToReturnStartupChunkInfo(this.Request, recordingResult.Data);
+
             var metaData = new
             {
                 gameKey = new
@@ -70,25 +73,25 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
                 chunkTimeInterval = recordingResult.Data.ReplayInformations.ChunkTimeInterval.TotalMilliseconds,
                 startTime = recordingResult.Data.GameInformations.StartTime.ToLeagueTime(),
                 endTime = recordingResult.Data.GameInformations.EndTime.ToLeagueTime(),
-                gameEnded = true,
-                lastChunkId = recordingResult.Data.ReplayInformations.EndGameChunkId,
-                lastKeyFrameId = recordingResult.Data.ReplayInformations.EndGameKeyFrameId,
-                endStartupChunkId = recordingResult.Data.ReplayInformations.EndStartupChunkId,
+                gameEnded = false,
+                lastChunkId = -1,
+                lastKeyFrameId = -1,
+                endStartupChunkId = 0,
                 delayTime = recordingResult.Data.ReplayInformations.DelayTime.TotalMilliseconds,
                 pendingAvailableChunkInfo = (object)null,
                 pendingAvailableKeyFrameInfo = (object)null,
                 keyFrameTimeInterval = recordingResult.Data.ReplayInformations.KeyFrameTimeInterval.TotalMilliseconds,
                 decodedEncryptionKey = string.Empty,
-                startGameChunkId = recordingResult.Data.ReplayInformations.StartGameChunkId,
-                gameLength = recordingResult.Data.GameInformations.GameLength.TotalMilliseconds,
+                startGameChunkId = 0,
+                gameLength = 0,
                 clientAddedLag = recordingResult.Data.ReplayInformations.ChunkTimeInterval.TotalMilliseconds,
-                clientBackFetchingEnabled = true,
-                clientBackFetchingFreq = 50,
+                clientBackFetchingEnabled = false,
+                clientBackFetchingFreq = 1000,
                 interestScore = recordingResult.Data.GameInformations.InterestScore,
                 featuredGame = false,
                 createTime = recordingResult.Data.ReplayInformations.CreateTime.ToLeagueTime(),
-                endGameChunkId = recordingResult.Data.ReplayInformations.EndGameChunkId,
-                endGameKeyFrameId = recordingResult.Data.ReplayInformations.EndGameKeyFrameId
+                endGameChunkId = -1,
+                endGameKeyFrameId = -1,
             };
 
             var result = this.Request.GetMessage(HttpStatusCode.OK);
@@ -96,7 +99,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
 
             return result;
         }
-
+        
         [HttpGet]
         [Route("observer-mode/rest/consumer/getLastChunkInfo/{spectatorRegionId}/{gameId}/{token}/token")]
         public async Task<HttpResponseMessage> GetLastChunkInfo(string spectatorRegionId, long gameId)
@@ -108,16 +111,28 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
 
+            var returnStartupChunkInfo = this.ShouldReturnStartupChunkInfo(this.Request, recordingResult.Data);
+            
             var lastChunkInfo = new
             {
-                chunkId = recordingResult.Data.ReplayInformations.EndGameChunkId,
+                chunkId = returnStartupChunkInfo 
+                    ? recordingResult.Data.ReplayInformations.StartGameChunkId 
+                    : recordingResult.Data.ReplayInformations.EndGameChunkId,
                 availableSince = 30000,
-                nextAvailableChunk = 0,
-                keyFrameId = recordingResult.Data.ReplayInformations.EndGameKeyFrameId,
-                nextChunkId = recordingResult.Data.ReplayInformations.EndGameChunkId,
+                nextAvailableChunk = returnStartupChunkInfo 
+                    ? 1000 
+                    : 0,
+                keyFrameId = returnStartupChunkInfo 
+                    ? 1 
+                    : recordingResult.Data.ReplayInformations.EndGameKeyFrameId,
+                nextChunkId = returnStartupChunkInfo 
+                    ? recordingResult.Data.ReplayInformations.StartGameChunkId 
+                    : recordingResult.Data.ReplayInformations.EndGameChunkId,
                 endStartupChunkId = recordingResult.Data.ReplayInformations.EndStartupChunkId,
                 startGameChunkId = recordingResult.Data.ReplayInformations.StartGameChunkId,
-                endGameChunkId = recordingResult.Data.ReplayInformations.EndGameChunkId,
+                endGameChunkId = returnStartupChunkInfo 
+                    ? 0 
+                    : recordingResult.Data.ReplayInformations.EndGameChunkId,
                 duration = 30000
             };
 
@@ -137,7 +152,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
 
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
-
+            
             Result<Stream> chunkResult = await this._recordingManager.GetChunkAsync(region, gameId, chunkId).ConfigureAwait(false);
 
             if (chunkResult.IsError)
@@ -170,5 +185,39 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
 
             return result;
         }
+
+        #region Private Methods
+        private static readonly Dictionary<Tuple<string, long, string>, int> _clientsThatNeedStartupChunkInfo = new Dictionary<Tuple<string, long, string>, int>(); 
+
+        private void RememberToReturnStartupChunkInfo(HttpRequestMessage request, Recording recording)
+        {
+            var clientIp = request.GetOwinContext().Request.RemoteIpAddress;
+            var client = Tuple.Create(recording.Region, recording.GameId, clientIp);
+
+            _clientsThatNeedStartupChunkInfo[client] = 0;
+        }
+
+        private bool ShouldReturnStartupChunkInfo(HttpRequestMessage request, Recording recording)
+        {
+            var clientIp = request.GetOwinContext().Request.RemoteIpAddress;
+            var client = Tuple.Create(recording.Region, recording.GameId, clientIp);
+
+            bool returnStartupChunkInfo = _clientsThatNeedStartupChunkInfo.ContainsKey(client);
+
+            if (returnStartupChunkInfo)
+            {
+                _clientsThatNeedStartupChunkInfo[client]++;
+
+                double amountOfChunksTheLoadingScreenTook = recording.ReplayInformations.StartGameChunkId - recording.ReplayInformations.EndStartupChunkId - 1;
+                int estimatedTimeInSecondsOnLoadingScreen = (int)(amountOfChunksTheLoadingScreenTook * recording.ReplayInformations.ChunkTimeInterval.TotalSeconds);
+                
+                if (_clientsThatNeedStartupChunkInfo[client] >= estimatedTimeInSecondsOnLoadingScreen)
+                {
+                    _clientsThatNeedStartupChunkInfo.Remove(client);
+                }
+            }
+            return returnStartupChunkInfo;
+        }
+        #endregion
     }
 }
