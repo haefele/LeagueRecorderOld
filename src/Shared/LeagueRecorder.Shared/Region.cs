@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace LeagueRecorder.Shared.League
+namespace LeagueRecorder.Shared
 {
     public abstract class Region
     {
@@ -9,6 +9,13 @@ namespace LeagueRecorder.Shared.League
         public static readonly Region NorthAmerica = new NorthAmericaRegion();
         public static readonly Region EuropeWest = new EuropeWestRegion();
         public static readonly Region EuropeNordicAndEast = new EuropeNordicAndEastRegion();
+        public static readonly Region Korea = new KoreaRegion();
+        public static readonly Region Oceanic = new OceanicRegion();
+        public static readonly Region Brasil = new BrasilRegion();
+        public static readonly Region LatinAmericaNorth = new LatinAmericaNorthRegion();
+        public static readonly Region LatinAmericaSouth = new LatinAmericaSouthRegion();
+        public static readonly Region Russia = new RussiaRegion();
+        public static readonly Region Turkey = new TurkeyRegion();
         #endregion
 
         #region Constructors
@@ -62,7 +69,14 @@ namespace LeagueRecorder.Shared.League
             {
                 NorthAmerica,
                 EuropeWest,
-                EuropeNordicAndEast
+                EuropeNordicAndEast,
+                Korea,
+                Oceanic,
+                Brasil,
+                LatinAmericaNorth,
+                LatinAmericaSouth,
+                Russia,
+                Turkey
             };
 
             return allRegions.FirstOrDefault(f => 
@@ -76,7 +90,7 @@ namespace LeagueRecorder.Shared.League
         {
             public override string SpectatorUrl
             {
-                get { return "spectator.na1.lol.riotgames.com"; }
+                get { return "spectator.na.lol.riotgames.com"; }
             }
 
             public override int SpectatorPort
@@ -91,7 +105,7 @@ namespace LeagueRecorder.Shared.League
 
             public override string RiotApiPlatformId
             {
-                get { return "na"; }
+                get { return "NA"; }
             }
         }
         private class EuropeWestRegion : Region
@@ -113,7 +127,7 @@ namespace LeagueRecorder.Shared.League
 
             public override string RiotApiPlatformId
             {
-                get { return "euw"; }
+                get { return "EUW"; }
             }
         }
         private class EuropeNordicAndEastRegion : Region
@@ -135,21 +149,163 @@ namespace LeagueRecorder.Shared.League
 
             public override string RiotApiPlatformId
             {
-                get { return "eune"; }
+                get { return "EUNE"; }
             }
         }
-        #endregion
+        private class KoreaRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.kr.lol.riotgames.com"; }
+            }
 
-        #region Other Regions
-        //Brazil
-        //LatinAmericaNorth
-        //LatinAmericaSouth
-        //Russia
-        //Turkey
-        //Korea
-        //Taiwan
-        //Oceania
-        //Singapore
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "KR"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "KR"; }
+            }
+        }
+        private class OceanicRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.oc1.lol.riotgames.com"; }
+            }
+
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "OCE1"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "OCE"; }
+            }
+        }
+        private class BrasilRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.br.lol.riotgames.com"; }
+            }
+
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "BR1"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "BR"; }
+            }
+        }
+        private class LatinAmericaNorthRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.la1.lol.riotgames.com"; }
+            }
+
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "LA1"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "LAN"; }
+            }
+        }
+        private class LatinAmericaSouthRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.la2.lol.riotgames.com"; }
+            }
+
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "LA2"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "LAS"; }
+            }
+        }
+        private class RussiaRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.ru.lol.riotgames.com"; }
+            }
+
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "RU"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "RU"; }
+            }
+        }
+        private class TurkeyRegion : Region
+        {
+            public override string SpectatorUrl
+            {
+                get { return "spectator.tr.lol.riotgames.com"; }
+            }
+
+            public override int SpectatorPort
+            {
+                get { return 80; }
+            }
+
+            public override string SpectatorPlatformId
+            {
+                get { return "TR1"; }
+            }
+
+            public override string RiotApiPlatformId
+            {
+                get { return "TR"; }
+            }
+        }
         #endregion
     }
 }

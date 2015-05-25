@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Localization;
+using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.Files;
 using LeagueRecorder.Shared.League;

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Localization;
+using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.Results;
 using Newtonsoft.Json.Linq;
