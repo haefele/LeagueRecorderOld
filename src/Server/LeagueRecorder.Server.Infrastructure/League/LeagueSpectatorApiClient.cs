@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Anotar.NLog;
 using LeagueRecorder.Server.Contracts.League;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
@@ -15,133 +16,173 @@ namespace LeagueRecorder.Server.Infrastructure.League
     {
         public async Task<Result<Version>> GetSpectatorVersion(Region region)
         {
-            var response = await this.GetClient(region)
-                .GetAsync("observer-mode/rest/consumer/version")
-                .ConfigureAwait(false);
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var version = Version.Parse(responseString);
+                var response = await this.GetClient(region)
+                    .GetAsync("observer-mode/rest/consumer/version")
+                    .ConfigureAwait(false);
 
-                return Result.AsSuccess(version);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var version = Version.Parse(responseString);
+
+                    return Result.AsSuccess(version);
+                }
+                else
+                {
+                    return Result.AsError(Messages.UnexpectedError);
+                }
             }
-            else
+            catch (Exception exception)
             {
-                return Result.AsError(Messages.UnexpectedError);
+                LogTo.ErrorException("Exception while retrieving the spectator version.", exception);
+                return Result.FromException(exception);
             }
         }
 
         public async Task<Result<RiotGameMetaData>> GetGameMetaData(Region region, long gameId)
         {
-            HttpResponseMessage response = await this.GetClient(region)
-                .GetAsync(string.Format("observer-mode/rest/consumer/getGameMetaData/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
-                .ConfigureAwait(false);
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var responseJson = JObject.Parse(responseString);
+                HttpResponseMessage response = await this.GetClient(region)
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getGameMetaData/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
+                    .ConfigureAwait(false);
 
-                var gameMetaData = new RiotGameMetaData
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    EndGameChunkId = responseJson.Value<int>("endGameChunkId"),
-                    EndGameKeyFrameId = responseJson.Value<int>("endGameKeyFrameId"),
-                    EndStartupChunkId = responseJson.Value<int>("endStartupChunkId"),
-                    GameId = responseJson.Value<JObject>("gameKey").Value<long>("gameId"),
-                    GameLength = TimeSpan.FromMilliseconds(responseJson.Value<int>("gameLength")),
-                    StartGameChunkId = responseJson.Value<int>("startGameChunkId"),
-                    Region = region.ToString(),
-                    ChunkTimeInterval = TimeSpan.FromMilliseconds(responseJson.Value<int>("chunkTimeInterval")),
-                    ClientAddedLag = TimeSpan.FromMilliseconds(responseJson.Value<int>("clientAddedLag")),
-                    CreateTime = DateTime.Parse(responseJson.Value<string>("createTime")),
-                    DelayTime = TimeSpan.FromMilliseconds(responseJson.Value<int>("delayTime")),
-                    EndTime = DateTime.Parse(responseJson.Value<string>("endTime")),
-                    InterestScore = responseJson.Value<int>("interestScore"),
-                    KeyFrameTimeInterval = TimeSpan.FromMilliseconds(responseJson.Value<int>("keyFrameTimeInterval")),
-                    StartTime = DateTime.Parse(responseJson.Value<string>("startTime"))
-                };
+                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseJson = JObject.Parse(responseString);
 
-                return Result.AsSuccess(gameMetaData);
+                    var gameMetaData = new RiotGameMetaData
+                    {
+                        EndGameChunkId = responseJson.Value<int>("endGameChunkId"),
+                        EndGameKeyFrameId = responseJson.Value<int>("endGameKeyFrameId"),
+                        EndStartupChunkId = responseJson.Value<int>("endStartupChunkId"),
+                        GameId = responseJson.Value<JObject>("gameKey").Value<long>("gameId"),
+                        GameLength = TimeSpan.FromMilliseconds(responseJson.Value<int>("gameLength")),
+                        StartGameChunkId = responseJson.Value<int>("startGameChunkId"),
+                        Region = region.ToString(),
+                        ChunkTimeInterval = TimeSpan.FromMilliseconds(responseJson.Value<int>("chunkTimeInterval")),
+                        ClientAddedLag = TimeSpan.FromMilliseconds(responseJson.Value<int>("clientAddedLag")),
+                        CreateTime = DateTime.Parse(responseJson.Value<string>("createTime")),
+                        DelayTime = TimeSpan.FromMilliseconds(responseJson.Value<int>("delayTime")),
+                        EndTime = DateTime.Parse(responseJson.Value<string>("endTime")),
+                        InterestScore = responseJson.Value<int>("interestScore"),
+                        KeyFrameTimeInterval = TimeSpan.FromMilliseconds(responseJson.Value<int>("keyFrameTimeInterval")),
+                        StartTime = DateTime.Parse(responseJson.Value<string>("startTime"))
+                    };
+
+                    return Result.AsSuccess(gameMetaData);
+                }
+                else
+                {
+                    return Result.AsError(Messages.UnexpectedError);
+                }
             }
-            else
+            catch (Exception exception)
             {
-                return Result.AsError(Messages.UnexpectedError);
+                LogTo.ErrorException("Exception while retrieving game meta data.", exception);
+                return Result.FromException(exception);
             }
         }
 
         public async Task<Result<RiotLastGameInfo>> GetLastGameInfo(Region region, long gameId)
         {
-            var response = await this.GetClient(region)
-                .GetAsync(string.Format("observer-mode/rest/consumer/getLastChunkInfo/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
-                .ConfigureAwait(false);
+            try 
+            { 
+                var response = await this.GetClient(region)
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getLastChunkInfo/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
+                    .ConfigureAwait(false);
 
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var responseJson = JObject.Parse(responseString);
-
-                var lastChunkInfo = new RiotLastGameInfo
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    CurrentChunkId = responseJson.Value<int>("chunkId"),
-                    CurrentKeyFrameId = responseJson.Value<int>("keyFrameId"),
-                    OriginalJsonResponse = responseString,
-                    EndGameChunkId = responseJson.Value<int>("endGameChunkId")
-                };
+                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseJson = JObject.Parse(responseString);
 
-                return Result.AsSuccess(lastChunkInfo);
+                    var lastChunkInfo = new RiotLastGameInfo
+                    {
+                        CurrentChunkId = responseJson.Value<int>("chunkId"),
+                        CurrentKeyFrameId = responseJson.Value<int>("keyFrameId"),
+                        OriginalJsonResponse = responseString,
+                        EndGameChunkId = responseJson.Value<int>("endGameChunkId")
+                    };
+
+                    return Result.AsSuccess(lastChunkInfo);
+                }
+                else
+                {
+                    return Result.AsError(Messages.UnexpectedError);
+                }
             }
-            else
+            catch (Exception exception)
             {
-                return Result.AsError(Messages.UnexpectedError);
+                LogTo.ErrorException("Exception while retrieving last game info.", exception);
+                return Result.FromException(exception);
             }
         }
 
         public async Task<Result<RiotChunk>> GetChunk(Region region, long gameId, int chunkId)
         {
-            HttpResponseMessage response = await this.GetClient(region)
-                .GetAsync(string.Format("observer-mode/rest/consumer/getGameDataChunk/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, chunkId))
-                .ConfigureAwait(false);
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                HttpResponseMessage response = await this.GetClient(region)
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getGameDataChunk/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, chunkId))
+                    .ConfigureAwait(false);
 
-                var chunk = new RiotChunk
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Id = chunkId,
-                    Data = responseData
-                };
+                    var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-                return Result.AsSuccess(chunk);
+                    var chunk = new RiotChunk
+                    {
+                        Id = chunkId,
+                        Data = responseData
+                    };
+
+                    return Result.AsSuccess(chunk);
+                }
+                else
+                {
+                    return Result.AsError(Messages.UnexpectedError);
+                }
             }
-            else
+            catch (Exception exception)
             {
-                return Result.AsError(Messages.UnexpectedError);
+                LogTo.ErrorException("Exception while retrieving a chunk.", exception);
+                return Result.FromException(exception);
             }
         }
 
         public async Task<Result<RiotKeyFrame>> GetKeyFrame(Region region, long gameId, int keyFrameId)
         {
-            HttpResponseMessage response = await this.GetClient(region)
-                .GetAsync(string.Format("observer-mode/rest/consumer/getKeyFrame/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, keyFrameId))
-                .ConfigureAwait(false);
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                HttpResponseMessage response = await this.GetClient(region)
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getKeyFrame/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, keyFrameId))
+                    .ConfigureAwait(false);
 
-                var keyFrame = new RiotKeyFrame
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Id = keyFrameId,
-                    Data = responseData
-                };
+                    var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-                return Result.AsSuccess(keyFrame);
+                    var keyFrame = new RiotKeyFrame
+                    {
+                        Id = keyFrameId,
+                        Data = responseData
+                    };
+
+                    return Result.AsSuccess(keyFrame);
+                }
+                else
+                {
+                    return Result.AsError(Messages.UnexpectedError);
+                }
             }
-            else
+            catch (Exception exception)
             {
-                return Result.AsError(Messages.UnexpectedError);
+                LogTo.ErrorException("Exception while retrieving the spectator version.", exception);
+                return Result.FromException(exception);
             }
         }
 
