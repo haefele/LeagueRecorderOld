@@ -45,12 +45,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient()
-                    .GetAsync(string.Format("api/lol/static-data/{0}/v1.2/versions", region.RiotApiPlatformId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("api/lol/static-data/{0}/v1.2/versions", region.RiotApiPlatformId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseString = await response.Content.ReadAsStringAsync();
                     var responseJson = JArray.Parse(responseString);
 
                     var largestVersion = responseJson
@@ -81,12 +80,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient(region)
-                    .GetAsync(string.Format("api/lol/{0}/v1.4/summoner/by-name/{1}", region.RiotApiPlatformId, summonerName))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("api/lol/{0}/v1.4/summoner/by-name/{1}", region.RiotApiPlatformId, summonerName));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseString = await response.Content.ReadAsStringAsync();
                     var responseJson = JObject.Parse(responseString).First.First;
 
                     var summoner = new RiotSummoner
@@ -125,8 +123,7 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient(region)
-                    .GetAsync(string.Format("observer-mode/rest/consumer/getSpectatorGameInfo/{0}/{1}", region.SpectatorPlatformId, summonerId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getSpectatorGameInfo/{0}/{1}", region.SpectatorPlatformId, summonerId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -170,12 +167,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 var response = await this.GetClient(region)
-                    .GetAsync(string.Format("/api/lol/{0}/v2.5/league/challenger?type=RANKED_SOLO_5x5", region.RiotApiPlatformId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("/api/lol/{0}/v2.5/league/challenger?type=RANKED_SOLO_5x5", region.RiotApiPlatformId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseString = await response.Content.ReadAsStringAsync();
                     var responseJson = JObject.Parse(responseString).Value<JArray>("entries");
 
                     IList<RiotSummoner> result = responseJson

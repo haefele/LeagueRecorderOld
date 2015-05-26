@@ -19,12 +19,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 var response = await this.GetClient(region)
-                    .GetAsync("observer-mode/rest/consumer/version")
-                    .ConfigureAwait(false);
+                    .GetAsync("observer-mode/rest/consumer/version");
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseString = await response.Content.ReadAsStringAsync();
                     var version = Version.Parse(responseString);
 
                     return Result.AsSuccess(version);
@@ -46,12 +45,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient(region)
-                    .GetAsync(string.Format("observer-mode/rest/consumer/getGameMetaData/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getGameMetaData/{0}/{1}/1/token", region.SpectatorPlatformId, gameId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseString = await response.Content.ReadAsStringAsync();
                     var responseJson = JObject.Parse(responseString);
 
                     var gameMetaData = new RiotGameMetaData
@@ -92,12 +90,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try 
             { 
                 var response = await this.GetClient(region)
-                    .GetAsync(string.Format("observer-mode/rest/consumer/getLastChunkInfo/{0}/{1}/1/token", region.SpectatorPlatformId, gameId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getLastChunkInfo/{0}/{1}/1/token", region.SpectatorPlatformId, gameId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var responseString = await response.Content.ReadAsStringAsync();
                     var responseJson = JObject.Parse(responseString);
 
                     var lastChunkInfo = new RiotLastGameInfo
@@ -127,12 +124,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient(region)
-                    .GetAsync(string.Format("observer-mode/rest/consumer/getGameDataChunk/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, chunkId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getGameDataChunk/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, chunkId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                    var responseData = await response.Content.ReadAsByteArrayAsync();
 
                     var chunk = new RiotChunk
                     {
@@ -159,12 +155,11 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient(region)
-                    .GetAsync(string.Format("observer-mode/rest/consumer/getKeyFrame/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, keyFrameId))
-                    .ConfigureAwait(false);
+                    .GetAsync(string.Format("observer-mode/rest/consumer/getKeyFrame/{0}/{1}/{2}/token", region.SpectatorPlatformId, gameId, keyFrameId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var responseData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                    var responseData = await response.Content.ReadAsByteArrayAsync();
 
                     var keyFrame = new RiotKeyFrame
                     {

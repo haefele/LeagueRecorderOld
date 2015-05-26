@@ -2,13 +2,13 @@
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.LeagueApi;
-using LeagueRecorder.Server.Contracts.Recording;
+using LeagueRecorder.Server.Contracts.Recordings;
 using LeagueRecorder.Server.Contracts.Storage;
 using LeagueRecorder.Shared.League.Api;
-using LeagueRecorder.Shared.League.Recording;
+using LeagueRecorder.Shared.League.Recordings;
 using LiteGuard;
 
-namespace LeagueRecorder.Server.Infrastructure.Recording
+namespace LeagueRecorder.Server.Infrastructure.Recordings
 {
     public class GameRecorderSupervisor : IGameRecorderSupervisor
     {

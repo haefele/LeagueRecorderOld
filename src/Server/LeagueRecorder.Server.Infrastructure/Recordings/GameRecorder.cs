@@ -5,15 +5,15 @@ using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.LeagueApi;
-using LeagueRecorder.Server.Contracts.Recording;
+using LeagueRecorder.Server.Contracts.Recordings;
 using LeagueRecorder.Server.Contracts.Storage;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.League.Api;
-using LeagueRecorder.Shared.League.Recording;
+using LeagueRecorder.Shared.League.Recordings;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
 
-namespace LeagueRecorder.Server.Infrastructure.Recording
+namespace LeagueRecorder.Server.Infrastructure.Recordings
 {
     public class GameRecorder : IDisposable
     {
@@ -76,8 +76,8 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
             if (this._timer != null)
                 this._timer.Stop();
 
-            await this.DownloadSpectatorInfo().ConfigureAwait(false);
-            await this.SaveGameIfFinished().ConfigureAwait(false);
+            await this.DownloadSpectatorInfo();
+            await this.SaveGameIfFinished();
 
             if (this._timer != null)
                 this._timer.Start();
@@ -91,7 +91,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
             {
                 LogTo.Debug("Updating league version of game {0} {1}.", this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                Result<Version> leagueVersionResult = await this._leagueApiClient.GetLeagueVersion(Region.FromString(this.Recording.Game.Region)).ConfigureAwait(false);
+                Result<Version> leagueVersionResult = await this._leagueApiClient.GetLeagueVersion(Region.FromString(this.Recording.Game.Region));
 
                 if (leagueVersionResult.IsSuccess)
                 {
@@ -104,7 +104,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
             {
                 LogTo.Debug("Updating spectator version of game {0} {1}.", this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                Result<Version> spectatorVersionResult = await this._spectatorApiClient.GetSpectatorVersion(Region.FromString(this.Recording.Game.Region)).ConfigureAwait(false);
+                Result<Version> spectatorVersionResult = await this._spectatorApiClient.GetSpectatorVersion(Region.FromString(this.Recording.Game.Region));
 
                 if (spectatorVersionResult.IsSuccess)
                 {
@@ -113,7 +113,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
                 }
             }
 
-            Result<RiotLastGameInfo> lastGameInfo = await this._spectatorApiClient.GetLastGameInfo(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId).ConfigureAwait(false);
+            Result<RiotLastGameInfo> lastGameInfo = await this._spectatorApiClient.GetLastGameInfo(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId);
 
             if (lastGameInfo.IsError)
             {
@@ -137,7 +137,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
 
                 LogTo.Debug("Downloading chunk {0} for game {1} {2}.", maxRecordedChunkId, this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                Result<RiotChunk> chunkResult = await this._spectatorApiClient.GetChunk(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId, maxRecordedChunkId).ConfigureAwait(false);
+                Result<RiotChunk> chunkResult = await this._spectatorApiClient.GetChunk(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId, maxRecordedChunkId);
 
                 if (chunkResult.IsError)
                 {
@@ -160,7 +160,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
 
                 LogTo.Debug("Downloading keyframe {0} for game {1} {2}.", maxRecordedKeyFrameId, this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                Result<RiotKeyFrame> keyFrameResult = await this._spectatorApiClient.GetKeyFrame(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId, maxRecordedKeyFrameId).ConfigureAwait(false);
+                Result<RiotKeyFrame> keyFrameResult = await this._spectatorApiClient.GetKeyFrame(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId, maxRecordedKeyFrameId);
 
                 if (keyFrameResult.IsError)
                 {
@@ -175,7 +175,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
             {
                 LogTo.Debug("The game {0} {1} has ended in chunk {2}. Downloading game meta data now.", this.Recording.Game.Region, this.Recording.Game.GameId, lastGameInfo.Data.EndGameChunkId);
 
-                Result<RiotGameMetaData> metaDataResult = await this._spectatorApiClient.GetGameMetaData(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId).ConfigureAwait(false);
+                Result<RiotGameMetaData> metaDataResult = await this._spectatorApiClient.GetGameMetaData(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId);
 
                 if (metaDataResult.IsSuccess)
                 {
@@ -202,7 +202,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
                 if (isComplete)
                 {
                     LogTo.Info("The recording for game {0} {1} has finished. Saving it into the database.", this.Recording.Game.Region, this.Recording.Game.GameId);
-                    await this._recordingStorage.SaveGameRecordingAsync(this.Recording).ConfigureAwait(false);
+                    await this._recordingStorage.SaveGameRecordingAsync(this.Recording);
 
                     this._gameRecorderSupervisor.RemoveRecording(this.Recording.Game);
                 }

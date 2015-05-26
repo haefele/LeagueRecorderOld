@@ -56,8 +56,7 @@
     <Compile Include="Entities\Recording.cs" />
     <Compile Include="Entities\ReplayInformations.cs" />
     <Compile Include="Entities\Summoner.cs" />
-    <Compile Include="Files\Chunk.cs" />
-    <Compile Include="League\Recording\RiotRecording.cs" />
+    <Compile Include="League\Recordings\RiotRecording.cs" />
     <Compile Include="League\Api\RiotChunk.cs" />
     <Compile Include="League\Api\RiotGameMetaData.cs" />
     <Compile Include="League\Api\RiotKeyFrame.cs" />

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using LeagueRecorder.Shared;
-using LeagueRecorder.Shared.League.Recording;
+using LeagueRecorder.Shared.League.Recordings;
 using LeagueRecorder.Shared.Results;
 
 namespace LeagueRecorder.Server.Contracts.Storage

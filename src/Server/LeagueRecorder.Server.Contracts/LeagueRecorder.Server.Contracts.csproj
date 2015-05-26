@@ -49,10 +49,11 @@
   <ItemGroup>
     <Compile Include="LeagueApi\ILeagueApiClient.cs" />
     <Compile Include="LeagueApi\ILeagueSpectatorApiClient.cs" />
-    <Compile Include="Recording\IGameRecorderSupervisor.cs" />
+    <Compile Include="Recordings\IGameRecorderSupervisor.cs" />
     <Compile Include="Storage\IRecordingStorage.cs" />
-    <Compile Include="Recording\ISummonersInGameFinder.cs" />
+    <Compile Include="Recordings\ISummonersInGameFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\ISummonerStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\LeagueRecorder.Shared\LeagueRecorder.Shared.csproj">

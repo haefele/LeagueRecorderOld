@@ -6,24 +6,22 @@ using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.LeagueApi;
-using LeagueRecorder.Server.Contracts.Recording;
+using LeagueRecorder.Server.Contracts.Recordings;
 using LeagueRecorder.Server.Infrastructure.Extensions;
-using LeagueRecorder.Server.Infrastructure.Raven.Indexes;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
-using Raven.Client;
-using Raven.Client.Linq;
+using LeagueRecorder.Server.Contracts.Storage;
 
-namespace LeagueRecorder.Server.Infrastructure.Recording
+namespace LeagueRecorder.Server.Infrastructure.Recordings
 {
     public class SummonerInGameFinder : ISummonersInGameFinder
     {
         #region Fields
         private readonly IConfig _config;
-        private readonly IDocumentStore _documentStore;
+        private readonly ISummonerStorage _summonerStorage;
         private readonly ILeagueApiClient _leagueApiClient;
         private readonly IGameRecorderSupervisor _gameRecorderSupervisor;
 
@@ -46,18 +44,18 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
         /// Initializes a new instance of the <see cref="SummonerInGameFinder"/> class.
         /// </summary>
         /// <param name="config">The configuration.</param>
-        /// <param name="documentStore">The document store.</param>
+        /// <param name="summonerStorage">The summoner storage.</param>
         /// <param name="leagueApiClient">The league API client.</param>
         /// <param name="gameRecorderSupervisor">The recording manager.</param>
-        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]IDocumentStore documentStore, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IGameRecorderSupervisor gameRecorderSupervisor)
+        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]ISummonerStorage summonerStorage, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IGameRecorderSupervisor gameRecorderSupervisor)
         {
             Guard.AgainstNullArgument("config", config);
-            Guard.AgainstNullArgument("documentStore", documentStore);
+            Guard.AgainstNullArgument("summonerStorage", summonerStorage);
             Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
             Guard.AgainstNullArgument("GameRecorderSupervisor", gameRecorderSupervisor);
 
             this._config = config;
-            this._documentStore = documentStore;
+            this._summonerStorage = summonerStorage;
             this._leagueApiClient = leagueApiClient;
             this._gameRecorderSupervisor = gameRecorderSupervisor;
 
@@ -99,46 +97,37 @@ namespace LeagueRecorder.Server.Infrastructure.Recording
             {
                 this._timer.Stop();
 
-                using (var session = this._documentStore.OpenAsyncSession())
+                string[] regions = this.GetRegionsThatAreAvailable();
+                Result<IList<Summoner>> summoners = await this._summonerStorage.GetSummonersForInGameCheckAsync();
+
+                if (summoners.IsError)
+                    return;
+                
+                foreach (var summoner in summoners.Data.Where(f => regions.Contains(f.Region)))
                 {
-                    string[] regions = this.GetRegionsThatAreAvailable();
+                    Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
 
-                    //Order the results here so we always get the "oldest" summoners
-                    IList<Summoner> summoners = await session.Query<Summoner, SummonersForQuery>()
-                        .Where(f => f.LastCheckIfInGameDate <= DateTimeOffset.Now.AddSeconds(-this._config.IntervalToCheckIfOneSummonerIsIngame))
-                        .Where(f => f.Region.In(regions))
-                        .OrderBy(f => f.LastCheckIfInGameDate)
-                        .Take(this._config.CountOfSummonersToCheckIfIngame)
-                        .ToListAsync();
-
-                    foreach (var summoner in summoners)
+                    if (currentGameResult.IsSuccess || currentGameResult.IsWarning)
                     {
-                        Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
-
-                        if (currentGameResult.IsSuccess || currentGameResult.IsWarning)
-                        {
-                            summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
-                        }
-
-                        if (currentGameResult.GetStatusCode() == HttpStatusCode.ServiceUnavailable)
-                        {
-                            this.RememberRegionIsUnavailable(summoner);
-                            break;
-                        }
-
-                        if (currentGameResult.IsSuccess)
-                        {
-                            LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
-
-                            this._gameRecorderSupervisor.Record(currentGameResult.Data);
-                        }
-                        else
-                        {
-                            LogTo.Debug("The summoner {0} ({1} {2}) is currently NOT in game: {3}", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
-                        }
+                        summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
                     }
 
-                    await session.SaveChangesAsync();
+                    if (currentGameResult.GetStatusCode() == HttpStatusCode.ServiceUnavailable)
+                    {
+                        this.RememberRegionIsUnavailable(summoner);
+                        break;
+                    }
+
+                    if (currentGameResult.IsSuccess)
+                    {
+                        LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
+
+                        this._gameRecorderSupervisor.Record(currentGameResult.Data);
+                    }
+                    else
+                    {
+                        LogTo.Debug("The summoner {0} ({1} {2}) is currently NOT in game: {3}", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
+                    }
                 }
             }
             catch (Exception exception)

@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using LeagueRecorder.Shared.League.Api;
 using LiteGuard;
 
-namespace LeagueRecorder.Shared.League.Recording
+namespace LeagueRecorder.Shared.League.Recordings
 {
     public class RiotRecording
     {
