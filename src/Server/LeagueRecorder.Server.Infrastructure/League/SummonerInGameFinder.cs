@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Infrastructure.Raven.Indexes;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
@@ -24,6 +27,8 @@ namespace LeagueRecorder.Server.Infrastructure.League
         private readonly IDocumentStore _documentStore;
         private readonly ILeagueApiClient _leagueApiClient;
         private readonly IGameRecorder _gameRecorder;
+
+        private readonly Dictionary<Region, DateTime> _regionIsUnavailableToLastTimeChecked; 
 
         private readonly object _isStartedLock = new object();
 
@@ -57,6 +62,8 @@ namespace LeagueRecorder.Server.Infrastructure.League
             this._documentStore = documentStore;
             this._leagueApiClient = leagueApiClient;
             this._gameRecorder = gameRecorder;
+
+            this._regionIsUnavailableToLastTimeChecked = new Dictionary<Region, DateTime>();
         }
         #endregion
 
@@ -75,7 +82,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             }
 
             this._timer = new Timer();
-            this._timer.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
+            this._timer.Interval = TimeSpan.FromSeconds(this._config.IntervalToCheckForSummonersThatAreIngameInSeconds).TotalMilliseconds;
             this._timer.Elapsed += this.TimerOnElapsed;
 
             this._timer.Start();
@@ -96,26 +103,35 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
                 using (var session = this._documentStore.OpenAsyncSession())
                 {
+                    string[] regions = this.GetRegionsThatAreAvailable();
+
                     //Order the results here so we always get the "oldest" summoners
                     IList<Summoner> summoners = await session.Query<Summoner, SummonersForQuery>()
-                        .Where(f => f.LastCheckIfInGameDate <= DateTimeOffset.Now.AddSeconds(-this._config.IntervalToCheckForSummonersThatAreIngameInSeconds))
+                        .Where(f => f.LastCheckIfInGameDate <= DateTimeOffset.Now.AddSeconds(-this._config.IntervalToCheckIfOneSummonerIsIngame))
+                        .Where(f => f.Region.In(regions))
                         .OrderBy(f => f.LastCheckIfInGameDate)
-                        .Take(50)
+                        .Take(this._config.CountOfSummonersToCheckIfIngame)
                         .ToListAsync();
 
-                    foreach(var summoner in summoners)
+                    foreach (var summoner in summoners)
                     {
                         Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
 
                         if (currentGameResult.IsSuccess || currentGameResult.IsWarning)
                         {
-                            summoner.LastCheckIfInGameDate = DateTimeOffset.Now;   
+                            summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
+                        }
+
+                        if (currentGameResult.GetStatusCode() == HttpStatusCode.ServiceUnavailable)
+                        {
+                            this.RememberRegionIsUnavailable(summoner);
+                            break;
                         }
 
                         if (currentGameResult.IsSuccess)
                         {
                             LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
-                            
+
                             this._gameRecorder.Record(currentGameResult.Data);
                         }
                         else
@@ -126,13 +142,40 @@ namespace LeagueRecorder.Server.Infrastructure.League
 
                     await session.SaveChangesAsync();
                 }
-
-                this._timer.Start();
             }
             catch (Exception exception)
             {
                 LogTo.ErrorException("Exception while checking if summoners are ingame.", exception);
             }
+            finally
+            {
+                this._timer.Start();
+            }
+        }
+        private void RememberRegionIsUnavailable(Summoner summoner)
+        {
+            LogTo.Debug("The region {0} is unavailable. Ignoring it for {1} seconds.", summoner.Region, this._config.DurationRegionsAreMarkedAsUnavailableInSeconds);
+
+            this._regionIsUnavailableToLastTimeChecked[Region.FromString(summoner.Region)] = DateTime.Now;
+        }
+
+        private string[] GetRegionsThatAreAvailable()
+        {
+            var outdatedRegions = this._regionIsUnavailableToLastTimeChecked
+                .Where(f => f.Value.AddSeconds(this._config.DurationRegionsAreMarkedAsUnavailableInSeconds) <= DateTime.Now)
+                .ToList();
+
+            foreach (KeyValuePair<Region, DateTime> outdatedRegion in outdatedRegions)
+            {
+                this._regionIsUnavailableToLastTimeChecked.Remove(outdatedRegion.Key);
+            }
+
+            LogTo.Debug("The regions {0} are unavailable. Ignoring players from them.", string.Join(", ", this._regionIsUnavailableToLastTimeChecked.Keys));
+
+            return Region.All
+                .Where(f => this._regionIsUnavailableToLastTimeChecked.Keys.Contains(f) == false)
+                .Select(f => f.ToString())
+                .ToArray();
         }
         #endregion
 

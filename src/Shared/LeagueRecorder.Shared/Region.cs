@@ -16,6 +16,20 @@ namespace LeagueRecorder.Shared
         public static readonly Region LatinAmericaSouth = new LatinAmericaSouthRegion();
         public static readonly Region Russia = new RussiaRegion();
         public static readonly Region Turkey = new TurkeyRegion();
+
+        public static readonly Region[] All = new Region[]
+        {
+            NorthAmerica,
+            EuropeWest,
+            EuropeNordicAndEast,
+            Korea,
+            Oceanic,
+            Brasil,
+            LatinAmericaNorth,
+            LatinAmericaSouth,
+            Russia,
+            Turkey
+        };
         #endregion
 
         #region Constructors
@@ -65,21 +79,7 @@ namespace LeagueRecorder.Shared
         /// <param name="platformId">The platform identifier.</param>
         public static Region FromString(string platformId)
         {
-            var allRegions = new[]
-            {
-                NorthAmerica,
-                EuropeWest,
-                EuropeNordicAndEast,
-                Korea,
-                Oceanic,
-                Brasil,
-                LatinAmericaNorth,
-                LatinAmericaSouth,
-                Russia,
-                Turkey
-            };
-
-            return allRegions.FirstOrDefault(f => 
+            return Region.All.FirstOrDefault(f => 
                 string.Equals(f.RiotApiPlatformId, platformId, StringComparison.InvariantCultureIgnoreCase) ||
                 string.Equals(f.SpectatorPlatformId, platformId, StringComparison.InvariantCultureIgnoreCase));
         }
@@ -105,7 +105,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "NA"; }
+                get { return "na"; }
             }
         }
         private class EuropeWestRegion : Region
@@ -127,7 +127,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "EUW"; }
+                get { return "euw"; }
             }
         }
         private class EuropeNordicAndEastRegion : Region
@@ -149,7 +149,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "EUNE"; }
+                get { return "eune"; }
             }
         }
         private class KoreaRegion : Region
@@ -171,7 +171,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "KR"; }
+                get { return "kr"; }
             }
         }
         private class OceanicRegion : Region
@@ -188,12 +188,12 @@ namespace LeagueRecorder.Shared
 
             public override string SpectatorPlatformId
             {
-                get { return "OCE1"; }
+                get { return "OC1"; }
             }
 
             public override string RiotApiPlatformId
             {
-                get { return "OCE"; }
+                get { return "oce"; }
             }
         }
         private class BrasilRegion : Region
@@ -215,7 +215,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "BR"; }
+                get { return "br"; }
             }
         }
         private class LatinAmericaNorthRegion : Region
@@ -237,7 +237,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "LAN"; }
+                get { return "lan"; }
             }
         }
         private class LatinAmericaSouthRegion : Region
@@ -259,7 +259,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "LAS"; }
+                get { return "las"; }
             }
         }
         private class RussiaRegion : Region
@@ -281,7 +281,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "RU"; }
+                get { return "ru"; }
             }
         }
         private class TurkeyRegion : Region
@@ -303,7 +303,7 @@ namespace LeagueRecorder.Shared
 
             public override string RiotApiPlatformId
             {
-                get { return "TR"; }
+                get { return "tr"; }
             }
         }
         #endregion

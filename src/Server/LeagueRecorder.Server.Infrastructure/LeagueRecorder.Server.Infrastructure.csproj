@@ -127,6 +127,7 @@
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
+    <Compile Include="Extensions\ResultExtensions.cs" />
     <Compile Include="IConfig.cs" />
     <Compile Include="League\ApiKeyMessageHandler.cs" />
     <Compile Include="League\LeagueApiClient.cs" />

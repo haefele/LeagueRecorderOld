@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using LiteGuard;
 
@@ -13,7 +14,7 @@ namespace LeagueRecorder.Shared.Results
         /// </summary>
         internal Result()
         {
-
+            this.AdditionalData = new Dictionary<string, object>();
         }
         #endregion
 
@@ -48,6 +49,10 @@ namespace LeagueRecorder.Shared.Results
         /// Gets the message.
         /// </summary>
         public string Message { get; internal set; }
+        /// <summary>
+        /// Gets the additional data.
+        /// </summary>
+        public Dictionary<string, object> AdditionalData { get; internal set; } 
         #endregion
 
         #region Factory Methods

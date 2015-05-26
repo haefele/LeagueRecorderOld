@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LeagueRecorder.Shared.Results
 {
@@ -11,7 +12,7 @@ namespace LeagueRecorder.Shared.Results
         /// </summary>
         internal Result()
         {
-
+            this.AdditionalData = new Dictionary<string, object>();
         }
         #endregion
 
@@ -50,6 +51,10 @@ namespace LeagueRecorder.Shared.Results
         /// Gets the message.
         /// </summary>
         public string Message { get; internal set; }
+        /// <summary>
+        /// Gets the additional data.
+        /// </summary>
+        public Dictionary<string, object> AdditionalData { get; internal set; } 
         #endregion
 
         #region Implicit Operators
@@ -66,7 +71,8 @@ namespace LeagueRecorder.Shared.Results
             return new Result<T>
             {
                 State = result.State,
-                Message = result.Message
+                Message = result.Message,
+                AdditionalData = result.AdditionalData
             };
         }
         /// <summary>
@@ -79,7 +85,8 @@ namespace LeagueRecorder.Shared.Results
             return new Result
             {
                 State = result.State,
-                Message = result.Message
+                Message = result.Message,
+                AdditionalData = result.AdditionalData
             };
         }
         #endregion

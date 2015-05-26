@@ -12,7 +12,8 @@ namespace LeagueRecorder.Server.Infrastructure.Raven.Indexes
                 from summoner in summoners
                 select new
                 {
-                    summoner.LastCheckIfInGameDate
+                    summoner.LastCheckIfInGameDate,
+                    summoner.Region
                 };
         }
 

@@ -12,5 +12,8 @@ namespace LeagueRecorder.Server.Infrastructure
         string RavenName { get; }
         string RiotApiKey { get; }
         bool RecordGames { get; }
+        int CountOfSummonersToCheckIfIngame { get; }
+        int IntervalToCheckIfOneSummonerIsIngame { get; }
+        int DurationRegionsAreMarkedAsUnavailableInSeconds { get; set; }
     }
 }
