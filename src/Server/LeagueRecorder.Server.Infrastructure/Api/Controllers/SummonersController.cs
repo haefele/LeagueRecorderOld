@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -37,7 +38,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
             if (actualRegion == null || string.IsNullOrWhiteSpace(summonerName))
                 return this.Request.GetMessageWithError(HttpStatusCode.BadRequest, Messages.InvalidArguments);
 
-            Result<RiotSummoner> summoner = await this._leagueApiClient.GetSummonerBySummonerNameAsync(actualRegion, summonerName);
+            Result<RiotSummoner> summoner = await this._leagueApiClient.GetSummonerBySummonerNameAsync(actualRegion, summonerName).ConfigureAwait(false);
 
             if (summoner.IsError)
                 return this.Request.GetMessageWithError(HttpStatusCode.InternalServerError, summoner.Message);
@@ -50,8 +51,8 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
             };
             summonerToStore.Id = Summoner.CreateId(summonerToStore.Region, summonerToStore.SummonerId);
 
-            await this.DocumentSession.StoreAsync(summonerToStore);
-            await this.DocumentSession.SaveChangesAsync();
+            await this.DocumentSession.StoreAsync(summonerToStore).ConfigureAwait(false);
+            await this.DocumentSession.SaveChangesAsync().ConfigureAwait(false);
 
             var result = new
             {
@@ -61,6 +62,38 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
             };
 
             return this.Request.GetMessageWithObject(HttpStatusCode.Created, result);
+        }
+
+        [HttpPost]
+        [Route("Summoners/Challengers/{region}")]
+        public async Task<HttpResponseMessage> AddChallengersAsync(string region)
+        {
+            Region actualRegion = Region.FromString(region);
+
+            if (actualRegion == null)
+                return this.Request.GetMessageWithError(HttpStatusCode.BadRequest, Messages.InvalidArguments);
+
+            Result<IList<RiotSummoner>> challengerResult = await _leagueApiClient.GetChallengerSummonersAsync(actualRegion).ConfigureAwait(false);
+
+            if (challengerResult.IsError)
+                return this.Request.GetMessageWithError(HttpStatusCode.InternalServerError, challengerResult.Message);
+
+            foreach (RiotSummoner summoner in challengerResult.Data)
+            {
+                var summonerToStore = new Summoner
+                {
+                    Region = actualRegion.ToString(),
+                    SummonerId = summoner.Id,
+                    SummonerName = summoner.Name
+                };
+                summonerToStore.Id = Summoner.CreateId(summonerToStore.Region, summonerToStore.SummonerId);
+
+                await this.DocumentSession.StoreAsync(summonerToStore).ConfigureAwait(false);
+            }
+
+            await this.DocumentSession.SaveChangesAsync().ConfigureAwait(false);
+
+            return this.Request.GetMessage(HttpStatusCode.Created);
         }
     }
 }
