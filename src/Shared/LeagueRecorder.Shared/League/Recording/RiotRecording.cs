@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using LeagueRecorder.Shared.League.Api;
 using LiteGuard;
 
-namespace LeagueRecorder.Shared.League
+namespace LeagueRecorder.Shared.League.Recording
 {
     public class RiotRecording
     {

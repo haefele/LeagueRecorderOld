@@ -10,6 +10,7 @@ using System.Web.Http;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Contracts.League.Storage;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
@@ -27,14 +28,14 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
 {
     public class RiotApiController : BaseController
     {
-        private readonly IRecordingManager _recordingManager;
+        private readonly IRecordingStorage _recordingStorage;
 
-        public RiotApiController([NotNull] IAsyncDocumentSession documentSession, [NotNull] IAsyncFilesSession filesSession, [NotNull]IRecordingManager recordingManager)
+        public RiotApiController([NotNull] IAsyncDocumentSession documentSession, [NotNull] IAsyncFilesSession filesSession, [NotNull]IRecordingStorage recordingStorage)
             : base(documentSession, filesSession)
         {
-            Guard.AgainstNullArgument("recordingManager", recordingManager);
+            Guard.AgainstNullArgument("RecordingStorage", recordingStorage);
 
-            this._recordingManager = recordingManager;
+            this._recordingStorage = recordingStorage;
         }
 
         [HttpGet]
@@ -53,7 +54,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
         {
             var region = Region.FromString(spectatorRegionId);
 
-            Result<Recording> recordingResult = await this._recordingManager.GetRecordingAsync(region, gameId).ConfigureAwait(false);
+            Result<Recording> recordingResult = await this._recordingStorage.GetRecordingAsync(region, gameId).ConfigureAwait(false);
 
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
@@ -106,7 +107,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
         {
             var region = Region.FromString(spectatorRegionId);
 
-            Result<Recording> recordingResult = await this._recordingManager.GetRecordingAsync(region, gameId).ConfigureAwait(false);
+            Result<Recording> recordingResult = await this._recordingStorage.GetRecordingAsync(region, gameId).ConfigureAwait(false);
 
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
@@ -148,12 +149,12 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
         {
             var region = Region.FromString(spectatorRegionId);
 
-            Result<Recording> recordingResult = await this._recordingManager.GetRecordingAsync(region, gameId).ConfigureAwait(false);
+            Result<Recording> recordingResult = await this._recordingStorage.GetRecordingAsync(region, gameId).ConfigureAwait(false);
 
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
             
-            Result<Stream> chunkResult = await this._recordingManager.GetChunkAsync(region, gameId, chunkId).ConfigureAwait(false);
+            Result<Stream> chunkResult = await this._recordingStorage.GetChunkAsync(region, gameId, chunkId).ConfigureAwait(false);
 
             if (chunkResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
@@ -170,12 +171,12 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
         {
             var region = Region.FromString(spectatorRegionId);
 
-            Result<Recording> recordingResult = await this._recordingManager.GetRecordingAsync(region, gameId).ConfigureAwait(false);
+            Result<Recording> recordingResult = await this._recordingStorage.GetRecordingAsync(region, gameId).ConfigureAwait(false);
 
             if (recordingResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);
 
-            Result<Stream> keyFrameResult = await this._recordingManager.GetKeyFrameAsync(region, gameId, keyFrameId).ConfigureAwait(false);
+            Result<Stream> keyFrameResult = await this._recordingStorage.GetKeyFrameAsync(region, gameId, keyFrameId).ConfigureAwait(false);
 
             if (keyFrameResult.IsError)
                 return this.Request.GetMessage(HttpStatusCode.NotFound);

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.League;
+using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 
-namespace LeagueRecorder.Server.Contracts.League
+namespace LeagueRecorder.Server.Contracts.League.Api
 {
     public interface ILeagueApiClient
     {

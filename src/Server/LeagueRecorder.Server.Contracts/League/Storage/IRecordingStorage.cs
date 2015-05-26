@@ -1,17 +1,17 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using LeagueRecorder.Shared;
-using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.League;
+using LeagueRecorder.Shared.League.Recording;
 using LeagueRecorder.Shared.Results;
 
-namespace LeagueRecorder.Server.Contracts.League
+namespace LeagueRecorder.Server.Contracts.League.Storage
 {
-    public interface IRecordingManager
+    public interface IRecordingStorage
     {
         Task<Result> SaveGameRecordingAsync(RiotRecording recording);
 
-        Task<Result<Recording>> GetRecordingAsync(Region region, long gameId);
+        Task<Result<Shared.Entities.Recording>> GetRecordingAsync(Region region, long gameId);
 
         Task<Result<Stream>> GetChunkAsync(Region region, long gameId, int chunkId);
 

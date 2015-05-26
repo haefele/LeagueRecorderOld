@@ -1,28 +1,32 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Contracts.League.Storage;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.Files;
 using LeagueRecorder.Shared.League;
+using LeagueRecorder.Shared.League.Recording;
 using LeagueRecorder.Shared.Results;
-using Raven.Abstractions.FileSystem;
+using LiteGuard;
 using Raven.Client;
 using Raven.Client.FileSystem;
 
-namespace LeagueRecorder.Server.Infrastructure.League
+namespace LeagueRecorder.Server.Infrastructure.League.Storage
 {
-    public class RecordingManager : IRecordingManager
+    public class RecordingStorage : IRecordingStorage
     {
         #region Fields
         private readonly IDocumentStore _documentStore;
         private readonly IFilesStore _filesStore;
         #endregion
 
-        public RecordingManager([NotNull]IDocumentStore documentStore, [NotNull]IFilesStore filesStore)
+        public RecordingStorage([NotNull]IDocumentStore documentStore, [NotNull]IFilesStore filesStore)
         {
+            Guard.AgainstNullArgument("documentStore", documentStore);
+            Guard.AgainstNullArgument("filesStore", filesStore);
+
             this._documentStore = documentStore;
             this._filesStore = filesStore;
         }
@@ -33,7 +37,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
             {
                 using (var session = this._documentStore.OpenAsyncSession())
                 {
-                    var storedRecording = new Recording
+                    var storedRecording = new Shared.Entities.Recording
                     {
                         GameId = recording.Game.GameId,
                         Region = recording.Game.Region,
@@ -60,7 +64,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                             InterestScore = recording.GameMetaData.InterestScore
                         }
                     };
-                    storedRecording.Id = Recording.CreateId(recording.Game.Region, recording.Game.GameId);
+                    storedRecording.Id = Shared.Entities.Recording.CreateId(recording.Game.Region, recording.Game.GameId);
 
                     await session.StoreAsync(storedRecording).ConfigureAwait(false);
                     await session.SaveChangesAsync().ConfigureAwait(false);
@@ -89,12 +93,12 @@ namespace LeagueRecorder.Server.Infrastructure.League
             });
         }
 
-        public async Task<Result<Recording>> GetRecordingAsync(Region region, long gameId)
+        public async Task<Result<Shared.Entities.Recording>> GetRecordingAsync(Region region, long gameId)
         {
             using (var documentSession = this._documentStore.OpenAsyncSession())
             {
-                var id = Recording.CreateId(region.ToString(), gameId);
-                var recording = await documentSession.LoadAsync<Recording>(id).ConfigureAwait(false);
+                var id = Shared.Entities.Recording.CreateId(region.ToString(), gameId);
+                var recording = await documentSession.LoadAsync<Shared.Entities.Recording>(id).ConfigureAwait(false);
 
                 if (recording == null)
                     return Result.AsError(Messages.GameNotFound);

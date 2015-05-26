@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Contracts.League.Api;
+using LeagueRecorder.Server.Contracts.League.Recording;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Infrastructure.Raven.Indexes;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.League;
+using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
-using Raven.Abstractions.Extensions;
 using Raven.Client;
 using Raven.Client.Linq;
 
-namespace LeagueRecorder.Server.Infrastructure.League
+namespace LeagueRecorder.Server.Infrastructure.League.Recording
 {
     public class SummonerInGameFinder : ISummonersInGameFinder
     {
@@ -26,7 +26,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
         private readonly IConfig _config;
         private readonly IDocumentStore _documentStore;
         private readonly ILeagueApiClient _leagueApiClient;
-        private readonly IGameRecorder _gameRecorder;
+        private readonly IGameRecorderSupervisor _gameRecorderSupervisor;
 
         private readonly Dictionary<Region, DateTime> _regionIsUnavailableToLastTimeChecked; 
 
@@ -50,18 +50,18 @@ namespace LeagueRecorder.Server.Infrastructure.League
         /// <param name="config">The configuration.</param>
         /// <param name="documentStore">The document store.</param>
         /// <param name="leagueApiClient">The league API client.</param>
-        /// <param name="gameRecorder">The recording manager.</param>
-        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]IDocumentStore documentStore, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IGameRecorder gameRecorder)
+        /// <param name="gameRecorderSupervisor">The recording manager.</param>
+        public SummonerInGameFinder([NotNull]IConfig config, [NotNull]IDocumentStore documentStore, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IGameRecorderSupervisor gameRecorderSupervisor)
         {
             Guard.AgainstNullArgument("config", config);
             Guard.AgainstNullArgument("documentStore", documentStore);
             Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
-            Guard.AgainstNullArgument("GameRecorder", gameRecorder);
+            Guard.AgainstNullArgument("GameRecorderSupervisor", gameRecorderSupervisor);
 
             this._config = config;
             this._documentStore = documentStore;
             this._leagueApiClient = leagueApiClient;
-            this._gameRecorder = gameRecorder;
+            this._gameRecorderSupervisor = gameRecorderSupervisor;
 
             this._regionIsUnavailableToLastTimeChecked = new Dictionary<Region, DateTime>();
         }
@@ -132,7 +132,7 @@ namespace LeagueRecorder.Server.Infrastructure.League
                         {
                             LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
 
-                            this._gameRecorder.Record(currentGameResult.Data);
+                            this._gameRecorderSupervisor.Record(currentGameResult.Data);
                         }
                         else
                         {

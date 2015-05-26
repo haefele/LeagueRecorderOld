@@ -2,7 +2,13 @@
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
 using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Contracts.League.Api;
+using LeagueRecorder.Server.Contracts.League.Recording;
+using LeagueRecorder.Server.Contracts.League.Storage;
 using LeagueRecorder.Server.Infrastructure.League;
+using LeagueRecorder.Server.Infrastructure.League.Api;
+using LeagueRecorder.Server.Infrastructure.League.Recording;
+using LeagueRecorder.Server.Infrastructure.League.Storage;
 
 namespace LeagueRecorder.Server.Infrastructure.Windsor
 {
@@ -14,8 +20,8 @@ namespace LeagueRecorder.Server.Infrastructure.Windsor
                 Component.For<ILeagueApiClient>().UsingFactoryMethod((kernel, context) => new LeagueApiClient(kernel.Resolve<IConfig>().RiotApiKey)).LifestyleTransient(),
                 Component.For<ILeagueSpectatorApiClient>().ImplementedBy<LeagueSpectatorApiClient>().LifestyleTransient(),
                 Component.For<ISummonersInGameFinder>().ImplementedBy<SummonerInGameFinder>().LifestyleSingleton(),
-                Component.For<IGameRecorder>().ImplementedBy<GameRecorder>().LifestyleSingleton(),
-                Component.For<IRecordingManager>().ImplementedBy<RecordingManager>().LifestyleSingleton()
+                Component.For<IGameRecorderSupervisor>().ImplementedBy<GameRecorderSupervisor>().LifestyleSingleton(),
+                Component.For<IRecordingStorage>().ImplementedBy<RecordingStorage>().LifestyleSingleton()
             );
         }
     }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Web;
 using LiteGuard;
 
-namespace LeagueRecorder.Server.Infrastructure.League
+namespace LeagueRecorder.Server.Infrastructure.League.Api
 {
     public class ApiKeyMessageHandler : DelegatingHandler
     {

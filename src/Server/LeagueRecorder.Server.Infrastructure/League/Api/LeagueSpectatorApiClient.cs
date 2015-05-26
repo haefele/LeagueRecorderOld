@@ -3,14 +3,15 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Anotar.NLog;
-using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Contracts.League.Api;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.League;
+using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 using Newtonsoft.Json.Linq;
 
-namespace LeagueRecorder.Server.Infrastructure.League
+namespace LeagueRecorder.Server.Infrastructure.League.Api
 {
     public class LeagueSpectatorApiClient : ILeagueSpectatorApiClient
     {

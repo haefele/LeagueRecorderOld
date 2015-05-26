@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Anotar.NLog;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League;
+using LeagueRecorder.Server.Contracts.League.Api;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.League;
+using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
 using Newtonsoft.Json.Linq;
 
-namespace LeagueRecorder.Server.Infrastructure.League
+namespace LeagueRecorder.Server.Infrastructure.League.Api
 {
     public class LeagueApiClient : ILeagueApiClient
     {

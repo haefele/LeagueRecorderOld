@@ -47,11 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="League\ILeagueApiClient.cs" />
-    <Compile Include="League\ILeagueSpectatorApiClient.cs" />
-    <Compile Include="League\IGameRecorder.cs" />
-    <Compile Include="League\IRecordingManager.cs" />
-    <Compile Include="League\ISummonersInGameFinder.cs" />
+    <Compile Include="League\Api\ILeagueApiClient.cs" />
+    <Compile Include="League\Api\ILeagueSpectatorApiClient.cs" />
+    <Compile Include="League\Recording\IGameRecorderSupervisor.cs" />
+    <Compile Include="League\Storage\IRecordingStorage.cs" />
+    <Compile Include="League\Recording\ISummonersInGameFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

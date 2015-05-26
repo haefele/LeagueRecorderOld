@@ -1,4 +1,4 @@
-﻿namespace LeagueRecorder.Shared.League
+﻿namespace LeagueRecorder.Shared.League.Api
 {
     public class RiotKeyFrame
     {
