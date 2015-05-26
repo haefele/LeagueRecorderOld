@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LeagueRecorder.Server.Contracts.League.Recording
+namespace LeagueRecorder.Server.Contracts.Recording
 {
     public interface ISummonersInGameFinder : IDisposable
     {

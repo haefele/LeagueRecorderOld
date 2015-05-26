@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League.Api;
-using LeagueRecorder.Server.Contracts.League.Recording;
-using LeagueRecorder.Server.Contracts.League.Storage;
+using LeagueRecorder.Server.Contracts.LeagueApi;
+using LeagueRecorder.Server.Contracts.Recording;
+using LeagueRecorder.Server.Contracts.Storage;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.League.Recording;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
 
-namespace LeagueRecorder.Server.Infrastructure.League.Recording
+namespace LeagueRecorder.Server.Infrastructure.Recording
 {
     public class GameRecorder : IDisposable
     {

@@ -6,17 +6,16 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Anotar.NLog;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League.Api;
+using LeagueRecorder.Server.Contracts.LeagueApi;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
-using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
 using Newtonsoft.Json.Linq;
 
-namespace LeagueRecorder.Server.Infrastructure.League.Api
+namespace LeagueRecorder.Server.Infrastructure.LeagueApi
 {
     public class LeagueApiClient : ILeagueApiClient
     {

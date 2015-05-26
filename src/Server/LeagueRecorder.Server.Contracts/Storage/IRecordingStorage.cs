@@ -1,11 +1,10 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using LeagueRecorder.Shared;
-using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.League.Recording;
 using LeagueRecorder.Shared.Results;
 
-namespace LeagueRecorder.Server.Contracts.League.Storage
+namespace LeagueRecorder.Server.Contracts.Storage
 {
     public interface IRecordingStorage
     {

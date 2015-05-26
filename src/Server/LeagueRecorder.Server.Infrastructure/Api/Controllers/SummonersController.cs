@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
-using LeagueRecorder.Server.Contracts.League.Api;
+using LeagueRecorder.Server.Contracts.LeagueApi;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;

@@ -1,19 +1,18 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League.Storage;
+using LeagueRecorder.Server.Contracts.Storage;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
 using LeagueRecorder.Shared.Files;
-using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.League.Recording;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
 using Raven.Client;
 using Raven.Client.FileSystem;
 
-namespace LeagueRecorder.Server.Infrastructure.League.Storage
+namespace LeagueRecorder.Server.Infrastructure.Storage
 {
     public class RecordingStorage : IRecordingStorage
     {

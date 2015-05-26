@@ -10,7 +10,7 @@ using System.Web.Http;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.League;
-using LeagueRecorder.Server.Contracts.League.Storage;
+using LeagueRecorder.Server.Contracts.Storage;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;

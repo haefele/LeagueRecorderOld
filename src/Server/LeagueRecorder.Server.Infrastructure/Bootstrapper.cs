@@ -7,7 +7,7 @@ using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 using Castle.Windsor.Installer;
 using LeagueRecorder.Server.Contracts.League;
-using LeagueRecorder.Server.Contracts.League.Recording;
+using LeagueRecorder.Server.Contracts.Recording;
 using LeagueRecorder.Server.Infrastructure.Api.Configuration;
 using LeagueRecorder.Server.Infrastructure.Windsor;
 using LeagueRecorder.Shared.Entities;

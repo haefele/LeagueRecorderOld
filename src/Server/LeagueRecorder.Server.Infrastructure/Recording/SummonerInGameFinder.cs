@@ -5,20 +5,19 @@ using System.Net;
 using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
-using LeagueRecorder.Server.Contracts.League.Api;
-using LeagueRecorder.Server.Contracts.League.Recording;
+using LeagueRecorder.Server.Contracts.LeagueApi;
+using LeagueRecorder.Server.Contracts.Recording;
 using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Infrastructure.Raven.Indexes;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
-using LeagueRecorder.Shared.League;
 using LeagueRecorder.Shared.League.Api;
 using LeagueRecorder.Shared.Results;
 using LiteGuard;
 using Raven.Client;
 using Raven.Client.Linq;
 
-namespace LeagueRecorder.Server.Infrastructure.League.Recording
+namespace LeagueRecorder.Server.Infrastructure.Recording
 {
     public class SummonerInGameFinder : ISummonersInGameFinder
     {
@@ -43,7 +42,6 @@ namespace LeagueRecorder.Server.Infrastructure.League.Recording
         #endregion
 
         #region Constructors
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SummonerInGameFinder"/> class.
         /// </summary>

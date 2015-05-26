@@ -1,7 +1,6 @@
-﻿using LeagueRecorder.Shared.League;
-using LeagueRecorder.Shared.League.Api;
+﻿using LeagueRecorder.Shared.League.Api;
 
-namespace LeagueRecorder.Server.Contracts.League.Recording
+namespace LeagueRecorder.Server.Contracts.Recording
 {
     public interface IGameRecorderSupervisor
     {

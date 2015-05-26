@@ -2,13 +2,13 @@
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
 using LeagueRecorder.Server.Contracts.League;
-using LeagueRecorder.Server.Contracts.League.Api;
-using LeagueRecorder.Server.Contracts.League.Recording;
-using LeagueRecorder.Server.Contracts.League.Storage;
+using LeagueRecorder.Server.Contracts.LeagueApi;
+using LeagueRecorder.Server.Contracts.Recording;
+using LeagueRecorder.Server.Contracts.Storage;
 using LeagueRecorder.Server.Infrastructure.League;
-using LeagueRecorder.Server.Infrastructure.League.Api;
-using LeagueRecorder.Server.Infrastructure.League.Recording;
-using LeagueRecorder.Server.Infrastructure.League.Storage;
+using LeagueRecorder.Server.Infrastructure.LeagueApi;
+using LeagueRecorder.Server.Infrastructure.Recording;
+using LeagueRecorder.Server.Infrastructure.Storage;
 
 namespace LeagueRecorder.Server.Infrastructure.Windsor
 {
