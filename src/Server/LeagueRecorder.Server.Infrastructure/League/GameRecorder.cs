@@ -14,15 +14,14 @@ using LiteGuard;
 
 namespace LeagueRecorder.Server.Infrastructure.League
 {
-    public class GameRecorder : IGameRecorder, IDisposable
+    public class GameRecorder : IGameRecorder
     {
         #region Fields
         private readonly ILeagueSpectatorApiClient _spectatorApiClient;
         private readonly ILeagueApiClient _leagueApiClient;
         private readonly IRecordingManager _recordingManager;
 
-        private readonly Timer _timer;
-        private readonly ConcurrentDictionary<RiotRecording, object> _recordings;
+        private readonly ConcurrentDictionary<RiotRecording, SingleGameRecorder> _recordings;
         #endregion
 
         #region Constructors
@@ -41,14 +40,8 @@ namespace LeagueRecorder.Server.Infrastructure.League
             this._spectatorApiClient = spectatorApiClient;
             this._leagueApiClient = leagueApiClient;
             this._recordingManager = recordingManager;
-
-            this._timer = new Timer();
-            this._timer.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
-            this._timer.Elapsed += TimerOnElapsed;
-
-            this._timer.Start();
-
-            this._recordings = new ConcurrentDictionary<RiotRecording, object>();
+            
+            this._recordings = new ConcurrentDictionary<RiotRecording, SingleGameRecorder>();
         }
         #endregion
 
@@ -59,173 +52,244 @@ namespace LeagueRecorder.Server.Infrastructure.League
         /// <param name="gameInfo">The game information.</param>
         public void Record(RiotSpectatorGameInfo gameInfo)
         {
-            LogTo.Debug("Recording game {0} {1}.", gameInfo.Region, gameInfo.GameId);
+            var recordingData = new RiotRecording(gameInfo);
 
-            var recording = new RiotRecording(gameInfo);
-
-            if (this._recordings.ContainsKey(recording) == false)
+            if (this._recordings.ContainsKey(recordingData) == false)
             {
-                this._recordings.TryAdd(recording, null);
+                LogTo.Info("Recording game {0} {1}.", gameInfo.Region, gameInfo.GameId);
+
+                var recorder = new SingleGameRecorder(this._spectatorApiClient, this._leagueApiClient, this._recordingManager, this, recordingData);
+                this._recordings.TryAdd(recordingData, recorder);
             }
         }
         #endregion
 
         #region Private Methods
         /// <summary>
-        /// Timers the on elapsed.
+        /// Removes the recording.
         /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="elapsedEventArgs">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
-        private async void TimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        /// <param name="recording">The recording.</param>
+        private void RemoveRecording(RiotRecording recording)
         {
-            this._timer.Stop();
-
-            await this.DownloadSpectatorInfo().ConfigureAwait(false);
-            await this.SaveFinishedGames().ConfigureAwait(false);
-
-            this._timer.Start();
-        }
-
-        private async Task DownloadSpectatorInfo()
-        {
-            foreach (RiotRecording recording in new List<RiotRecording>(this._recordings.Keys))
+            SingleGameRecorder recorder;
+            if (this._recordings.TryRemove(recording, out recorder))
             {
-                if (recording.LeagueVersion == null)
-                {
-                    LogTo.Debug("Updating league version of game {0} {1}.", recording.Game.Region, recording.Game.GameId);
+                recorder.Dispose();
+            }
+        }
+        #endregion
 
-                    Result<Version> leagueVersionResult = await this._leagueApiClient.GetLeagueVersion(Region.FromString(recording.Game.Region)).ConfigureAwait(false);
+        #region Internal
+        private class SingleGameRecorder : IDisposable
+        {
+            #region Fields
+            private readonly ILeagueSpectatorApiClient _spectatorApiClient;
+            private readonly ILeagueApiClient _leagueApiClient;
+            private readonly IRecordingManager _recordingManager;
+
+            private readonly GameRecorder _gameRecorder;
+
+            private Timer _timer;
+            #endregion
+
+            #region Properties
+            /// <summary>
+            /// Gets or sets the recording.
+            /// </summary>
+            public RiotRecording Recording { get; private set; }
+            #endregion
+
+            #region Constructors
+            /// <summary>
+            /// Initializes a new instance of the <see cref="SingleGameRecorder"/> class.
+            /// </summary>
+            /// <param name="spectatorApiClient">The spectator API client.</param>
+            /// <param name="leagueApiClient">The league API client.</param>
+            /// <param name="recordingManager">The recording manager.</param>
+            /// <param name="gameRecorder">The game recorder.</param>
+            /// <param name="recording">The recording.</param>
+            public SingleGameRecorder([NotNull]ILeagueSpectatorApiClient spectatorApiClient, [NotNull]ILeagueApiClient leagueApiClient, [NotNull]IRecordingManager recordingManager, [NotNull]GameRecorder gameRecorder, [NotNull]RiotRecording recording)
+            {
+                Guard.AgainstNullArgument("spectatorApiClient", spectatorApiClient);
+                Guard.AgainstNullArgument("leagueApiClient", leagueApiClient);
+                Guard.AgainstNullArgument("recordingManager", recordingManager);
+                Guard.AgainstNullArgument("gameRecorder", gameRecorder);
+
+                this._spectatorApiClient = spectatorApiClient;
+                this._leagueApiClient = leagueApiClient;
+                this._recordingManager = recordingManager;
+                this._gameRecorder = gameRecorder;
+
+                this.Recording = recording;
+
+                this._timer = new Timer();
+                this._timer.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
+                this._timer.Elapsed += TimerOnElapsed;
+
+                this._timer.Start();
+            }
+            #endregion
+
+            #region Private Methods
+            /// <summary>
+            /// Timers the on elapsed.
+            /// </summary>
+            /// <param name="sender">The sender.</param>
+            /// <param name="elapsedEventArgs">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
+            private async void TimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+            {
+                if (this._timer != null)
+                    this._timer.Stop();
+
+                await this.DownloadSpectatorInfo().ConfigureAwait(false);
+                await this.SaveGameIfFinished().ConfigureAwait(false);
+
+                if (this._timer != null)
+                    this._timer.Start();
+            }
+            /// <summary>
+            /// Downloads the spectator information.
+            /// </summary>
+            private async Task DownloadSpectatorInfo()
+            {
+                if (this.Recording.LeagueVersion == null)
+                {
+                    LogTo.Debug("Updating league version of game {0} {1}.", this.Recording.Game.Region, this.Recording.Game.GameId);
+
+                    Result<Version> leagueVersionResult = await this._leagueApiClient.GetLeagueVersion(Region.FromString(this.Recording.Game.Region)).ConfigureAwait(false);
 
                     if (leagueVersionResult.IsSuccess)
                     {
-                        LogTo.Debug("The current league version for game {0} {1} is {2}.", recording.Game.Region, recording.Game.GameId, leagueVersionResult.Data);
-                        recording.LeagueVersion = leagueVersionResult.Data;
+                        LogTo.Debug("The current league version for game {0} {1} is {2}.", this.Recording.Game.Region, this.Recording.Game.GameId, leagueVersionResult.Data);
+                        this.Recording.LeagueVersion = leagueVersionResult.Data;
                     }
                 }
 
-                if (recording.SpectatorVersion == null)
+                if (this.Recording.SpectatorVersion == null)
                 {
-                    LogTo.Debug("Updating spectator version of game {0} {1}.", recording.Game.Region, recording.Game.GameId);
+                    LogTo.Debug("Updating spectator version of game {0} {1}.", this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                    Result<Version> spectatorVersionResult = await this._spectatorApiClient.GetSpectatorVersion(Region.FromString(recording.Game.Region)).ConfigureAwait(false);
+                    Result<Version> spectatorVersionResult = await this._spectatorApiClient.GetSpectatorVersion(Region.FromString(this.Recording.Game.Region)).ConfigureAwait(false);
 
                     if (spectatorVersionResult.IsSuccess)
                     {
-                        LogTo.Debug("The current spectator version for game {0} {1} is {2}.", recording.Game.Region, recording.Game.GameId, spectatorVersionResult.Data);
-                        recording.SpectatorVersion = spectatorVersionResult.Data;
+                        LogTo.Debug("The current spectator version for game {0} {1} is {2}.", this.Recording.Game.Region, this.Recording.Game.GameId, spectatorVersionResult.Data);
+                        this.Recording.SpectatorVersion = spectatorVersionResult.Data;
                     }
                 }
 
-                Result<RiotLastGameInfo> lastGameInfo = await this._spectatorApiClient.GetLastGameInfo(Region.FromString(recording.Game.Region), recording.Game.GameId).ConfigureAwait(false);
+                Result<RiotLastGameInfo> lastGameInfo = await this._spectatorApiClient.GetLastGameInfo(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId).ConfigureAwait(false);
 
                 if (lastGameInfo.IsError)
                 {
-                    LogTo.Debug("Error while retrieving the last game info for game {0} {1}. Throwing it away.", recording.Game.Region, recording.Game.GameId);
+                    LogTo.Error("Error while retrieving the last game info for game {0} {1}. Throwing it away.", this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                    object output;
-                    this._recordings.TryRemove(recording, out output);
-
-                    continue;
+                    this._gameRecorder.RemoveRecording(this.Recording);
+                    return;
                 }
 
-                recording.GameInfo = lastGameInfo.Data;
+                this.Recording.GameInfo = lastGameInfo.Data;
 
-                int maxRecordedChunkId = recording.Chunks.Any() 
-                    ? recording.Chunks.Max(f => f.Id) 
+                int maxRecordedChunkId = this.Recording.Chunks.Any()
+                    ? this.Recording.Chunks.Max(f => f.Id)
                     : 0;
-                
-                LogTo.Debug("The current max chunk-id for game {0} {1} is {2}.", recording.Game.Region, recording.Game.GameId, maxRecordedChunkId);
+
+                LogTo.Debug("Downloading chunks {0} to {1} for game {2} {3}.", maxRecordedChunkId + 1, lastGameInfo.Data.CurrentChunkId, this.Recording.Game.Region, this.Recording.Game.GameId);
 
                 while (maxRecordedChunkId < lastGameInfo.Data.CurrentChunkId)
                 {
                     maxRecordedChunkId++;
 
-                    LogTo.Debug("Downloading chunk {0} for game {1} {2}.", maxRecordedChunkId, recording.Game.Region, recording.Game.GameId);
+                    LogTo.Debug("Downloading chunk {0} for game {1} {2}.", maxRecordedChunkId, this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                    Result<RiotChunk> chunkResult = await this._spectatorApiClient.GetChunk(Region.FromString(recording.Game.Region), recording.Game.GameId, maxRecordedChunkId).ConfigureAwait(false);
+                    Result<RiotChunk> chunkResult = await this._spectatorApiClient.GetChunk(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId, maxRecordedChunkId).ConfigureAwait(false);
 
                     if (chunkResult.IsError)
+                    {
+                        LogTo.Error("Error while downloading chunk {0} for game {1} {2}.", maxRecordedChunkId, this.Recording.Game.Region, this.Recording.Game.GameId);
                         continue;
+                    }
 
-                    recording.Chunks.Add(chunkResult.Data);
+                    this.Recording.Chunks.Add(chunkResult.Data);
                 }
 
-                int maxRecordedKeyFrameId = recording.KeyFrames.Any() 
-                    ? recording.KeyFrames.Max(f => f.Id) 
+                int maxRecordedKeyFrameId = this.Recording.KeyFrames.Any()
+                    ? this.Recording.KeyFrames.Max(f => f.Id)
                     : 0;
 
-                LogTo.Debug("The current max keyframe-id for game {0} {1} is {2}.", recording.Game.Region, recording.Game.GameId, maxRecordedKeyFrameId);
-
+                LogTo.Debug("Downloading keyframes {0} to {1} for game {2} {3}.", maxRecordedKeyFrameId + 1, lastGameInfo.Data.CurrentKeyFrameId, this.Recording.Game.Region, this.Recording.Game.GameId);
+                
                 while (maxRecordedKeyFrameId < lastGameInfo.Data.CurrentKeyFrameId)
                 {
                     maxRecordedKeyFrameId++;
 
-                    LogTo.Debug("Downloading keyframe {0} for game {1} {2}.", maxRecordedKeyFrameId, recording.Game.Region, recording.Game.GameId);
+                    LogTo.Debug("Downloading keyframe {0} for game {1} {2}.", maxRecordedKeyFrameId, this.Recording.Game.Region, this.Recording.Game.GameId);
 
-                    Result<RiotKeyFrame> keyFrameResult = await this._spectatorApiClient.GetKeyFrame(Region.FromString(recording.Game.Region), recording.Game.GameId, maxRecordedKeyFrameId).ConfigureAwait(false);
+                    Result<RiotKeyFrame> keyFrameResult = await this._spectatorApiClient.GetKeyFrame(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId, maxRecordedKeyFrameId).ConfigureAwait(false);
 
                     if (keyFrameResult.IsError)
+                    {
+                        LogTo.Error("Error while downloading keyframe {0} for game {1} {2}.", maxRecordedKeyFrameId, this.Recording.Game.Region, this.Recording.Game.GameId);
                         continue;
+                    }
 
-                    recording.KeyFrames.Add(keyFrameResult.Data);
+                    this.Recording.KeyFrames.Add(keyFrameResult.Data);
                 }
 
                 if (lastGameInfo.Data.EndGameChunkId > 0)
                 {
-                    LogTo.Debug("The game {0} {1} has ended in chunk {2}. Downloading game meta data now.", recording.Game.Region, recording.Game.GameId, lastGameInfo.Data.EndGameChunkId);
+                    LogTo.Debug("The game {0} {1} has ended in chunk {2}. Downloading game meta data now.", this.Recording.Game.Region, this.Recording.Game.GameId, lastGameInfo.Data.EndGameChunkId);
 
-                    Result<RiotGameMetaData> metaDataResult = await this._spectatorApiClient.GetGameMetaData(Region.FromString(recording.Game.Region), recording.Game.GameId).ConfigureAwait(false);
+                    Result<RiotGameMetaData> metaDataResult = await this._spectatorApiClient.GetGameMetaData(Region.FromString(this.Recording.Game.Region), this.Recording.Game.GameId).ConfigureAwait(false);
 
                     if (metaDataResult.IsSuccess)
                     {
-                        recording.GameMetaData = metaDataResult.Data;
+                        this.Recording.GameMetaData = metaDataResult.Data;
                     }
                 }
             }
-        }
-
-        private async Task SaveFinishedGames()
-        {
-            var finishedRecordings = this._recordings.Keys
-                .Where(f => f.GameMetaData != null &&
-                            f.Chunks.Any(d => d.Id == f.GameMetaData.EndGameChunkId) &&
-                            f.KeyFrames.Any(d => d.Id == f.GameMetaData.EndGameKeyFrameId))
-                .ToList();
-
-            if (finishedRecordings.Any())
-                LogTo.Debug("Saving all finished recordings.");
-
-            foreach (RiotRecording recording in finishedRecordings)
+            /// <summary>
+            /// Saves the game if it finished.
+            /// </summary>
+            private async Task SaveGameIfFinished()
             {
-                LogTo.Debug("The recording for game {0} {1} has finished. Saving it into the database.", recording.Game.Region, recording.Game.GameId);
+                bool hasFinishedRecording =
+                    this.Recording.GameMetaData != null &&
+                    this.Recording.Chunks.Any(d => d.Id == this.Recording.GameMetaData.EndGameChunkId) &&
+                    this.Recording.KeyFrames.Any(d => d.Id == this.Recording.GameMetaData.EndGameKeyFrameId);
 
-                object output;
-                this._recordings.TryRemove(recording, out output);
+                if (hasFinishedRecording)
+                {
+                    bool isComplete =
+                        this.Recording.Chunks.Count == this.Recording.GameMetaData.EndGameChunkId &&
+                        this.Recording.KeyFrames.Count == this.Recording.GameMetaData.EndGameKeyFrameId;
 
-                await this.SaveGameRecordingIntoDatabase(recording).ConfigureAwait(false);
+                    if (isComplete)
+                    {
+                        LogTo.Info("The recording for game {0} {1} has finished. Saving it into the database.", this.Recording.Game.Region, this.Recording.Game.GameId);
+                        await this._recordingManager.SaveGameRecordingAsync(this.Recording).ConfigureAwait(false);
+
+                        this._gameRecorder.RemoveRecording(this.Recording);
+                    }
+                    else
+                    {
+                        LogTo.Info("Sadly there are chunks or keyframes missing for game {0} {1}. Will not save it into the database. Chunks: {2} of {3}. KeyFrames: {4} of {5}.", this.Recording.Game.Region, this.Recording.Game.GameId, this.Recording.Chunks.Count, this.Recording.GameMetaData.EndGameChunkId, this.Recording.KeyFrames.Count, this.Recording.GameMetaData.EndGameKeyFrameId);
+                        this._gameRecorder.RemoveRecording(this.Recording);
+                    }
+                }
             }
-        }
+            #endregion
 
-        private async Task SaveGameRecordingIntoDatabase(RiotRecording recording)
-        {
-            if (recording.Chunks.Count != recording.GameMetaData.EndGameChunkId ||
-                recording.KeyFrames.Count != recording.GameMetaData.EndGameKeyFrameId)
+            #region Implementation of IDisposable
+            /// <summary>
+            /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            /// </summary>
+            public void Dispose()
             {
-                LogTo.Debug("Sadly there are chunks or keyframes missing for game {0} {1}. Will not save it into the database. Chunks: {2} of {3}. KeyFrames: {4} of {5}.", recording.Game.Region, recording.Game.GameId, recording.Chunks.Count, recording.GameMetaData.EndGameChunkId, recording.KeyFrames.Count, recording.GameMetaData.EndGameKeyFrameId);
-                return;
+                this._timer.Dispose();
+                this._timer = null;
             }
-
-            await this._recordingManager.SaveGameRecordingAsync(recording).ConfigureAwait(false);
-        }
-        #endregion
-
-        #region Implementation of IDisposable
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            this._timer.Dispose();
+            #endregion
         }
         #endregion
     }
