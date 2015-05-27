@@ -119,7 +119,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
 
                         this._gameRecorderSupervisor.Record(currentGameResult.Data);
 
-                        summoner.NextDateToCheckIfSummonerIsIngame = DateTimeOffset.Now.AddMinutes(this._config.DurationToIgnoreSummonersThatAreIngame);
+                        summoner.NextDateToCheckIfSummonerIsIngame = DateTimeOffset.Now.AddSeconds(this._config.DurationToIgnoreSummonersThatAreIngame);
                         await this._summonerStorage.SaveSummonerAsync(summoner);
                     }
                     else if (currentGameResult.IsWarning)
