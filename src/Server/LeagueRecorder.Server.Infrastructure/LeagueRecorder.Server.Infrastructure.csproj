@@ -44,6 +44,12 @@
     <Reference Include="Castle.Windsor">
       <HintPath>..\..\packages\Castle.Windsor.3.3.0\lib\net45\Castle.Windsor.dll</HintPath>
     </Reference>
+    <Reference Include="FluentNHibernate">
+      <HintPath>..\..\packages\FluentNHibernate.2.0.1.0\lib\net40\FluentNHibernate.dll</HintPath>
+    </Reference>
+    <Reference Include="Iesi.Collections">
+      <HintPath>..\..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
+    </Reference>
     <Reference Include="LiteGuard">
       <HintPath>..\..\packages\LiteGuard.0.10.0\lib\net35\LiteGuard.dll</HintPath>
     </Reference>
@@ -82,6 +88,10 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NHibernate">
+      <HintPath>..\..\packages\NHibernate.4.0.0.4000\lib\net40\NHibernate.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\packages\NLog.3.0.0.0\lib\net45\NLog.dll</HintPath>
@@ -140,6 +150,7 @@
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
+    <Compile Include="Extensions\PropertyPartExtensions.cs" />
     <Compile Include="Extensions\ResultExtensions.cs" />
     <Compile Include="IConfig.cs" />
     <Compile Include="LeagueApi\ApiKeyMessageHandler.cs" />
@@ -154,6 +165,7 @@
     <Compile Include="Windsor\AzureInstaller.cs" />
     <Compile Include="Windsor\ConfigInstaller.cs" />
     <Compile Include="Windsor\ControllerInstaller.cs" />
+    <Compile Include="Windsor\NHibernateInstaller.cs" />
     <Compile Include="Windsor\ServicesInstaller.cs" />
     <Compile Include="Windsor\WindsorDependencyScope.cs" />
     <Compile Include="Windsor\WindsorResolver.cs" />

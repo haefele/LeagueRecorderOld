@@ -2,8 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentNHibernate.Mapping;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.Storage;
+using LeagueRecorder.Server.Infrastructure.Extensions;
 using LeagueRecorder.Server.Localization;
 using LeagueRecorder.Shared;
 using LeagueRecorder.Shared.Entities;
@@ -13,6 +15,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
+using NHibernate;
 
 namespace LeagueRecorder.Server.Infrastructure.Storage
 {
@@ -20,15 +23,15 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
     {
         #region Fields
         private readonly CloudBlobClient _blobClient;
-        private readonly CloudTableClient _tableClient;
+        private readonly ISessionFactory _sessionFactory;
         private readonly IConfig _config;
         #endregion
 
         #region Constructors
-        public AzureRecordingStorage([NotNull]CloudBlobClient blobClient, [NotNull]CloudTableClient tableClient, [NotNull]IConfig config)
+        public AzureRecordingStorage([NotNull]CloudBlobClient blobClient, [NotNull]ISessionFactory sessionFactory, [NotNull]IConfig config)
         {
             this._blobClient = blobClient;
-            this._tableClient = tableClient;
+            this._sessionFactory = sessionFactory;
             this._config = config;
         }
         #endregion
@@ -36,13 +39,13 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
         #region Methods
         public async Task<Result> SaveGameRecordingAsync(RiotRecording recording)
         {
-            await this.SaveRecording(recording);
+            this.SaveRecording(recording);
 
             var container = await this.GetContainerAsync(Region.FromString(recording.Game.Region));
             foreach (var chunk in recording.Chunks)
             {
                 string fileName = this.CreateChunkFileName(recording.Game.Region, recording.Game.GameId, chunk.Id);
-                var blob = await container.GetBlobReferenceFromServerAsync(fileName);
+                var blob = container.GetBlockBlobReference(fileName);
 
                 await blob.UploadFromByteArrayAsync(chunk.Data, 0, chunk.Data.Length);
             }
@@ -50,7 +53,7 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
             foreach (var keyFrame in recording.KeyFrames)
             {
                 string fileName = this.CreateKeyFrameFileName(recording.Game.Region, recording.Game.GameId, keyFrame.Id);
-                var blob = await container.GetBlobReferenceFromServerAsync(fileName);
+                var blob = container.GetBlockBlobReference(fileName);
 
                 await blob.UploadFromByteArrayAsync(keyFrame.Data, 0, keyFrame.Data.Length);
             }
@@ -60,16 +63,18 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
 
         public async Task<Result<Recording>> GetRecordingAsync(Region region, long gameId)
         {
-            var tableReference = await this.GetTableReferenceAsync<RecordingEntity>();
-            var entityResult = await tableReference.ExecuteAsync(TableOperation.Retrieve<RecordingEntity>(region.ToString(), gameId.ToString()));
+            using (var session = this._sessionFactory.OpenSession())
+            {
+                var entity = session.Get<RecordingEntity>(this.CreateRecordingId(region.ToString(), gameId));
 
-            if (entityResult.Result == null)
-                return Result.AsError(Messages.GameNotFound);
+                if (entity == null)
+                    return Result.AsError(Messages.GameNotFound);
 
-            string json = ((RecordingEntity)entityResult.Result).Data;
-            var recording = JsonConvert.DeserializeObject<Recording>(json);
+                string json = entity.DataAsJson;
+                var recording = JsonConvert.DeserializeObject<Recording>(json);
 
-            return Result.AsSuccess(recording);
+                return Result.AsSuccess(recording);
+            }
         }
 
         public async Task<Result<Stream>> GetChunkAsync(Region region, long gameId, int chunkId)
@@ -77,7 +82,7 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
             var container = await this.GetContainerAsync(region);
 
             var fileName = this.CreateChunkFileName(region.ToString(), gameId, chunkId);
-            var chunkFile = await container.GetBlobReferenceFromServerAsync(fileName);
+            var chunkFile = container.GetBlockBlobReference(fileName);
 
             bool exists = await chunkFile.ExistsAsync();
             if (exists == false)
@@ -92,7 +97,7 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
             var container = await this.GetContainerAsync(region);
 
             var fileName = this.CreateKeyFrameFileName(region.ToString(), gameId, keyFrameId);
-            var keyFrameFile = await container.GetBlobReferenceFromServerAsync(fileName);
+            var keyFrameFile = container.GetBlockBlobReference(fileName);
 
             bool exists = await keyFrameFile.ExistsAsync();
             if (exists == false)
@@ -106,22 +111,13 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
         #region Private Methods
         private async Task<CloudBlobContainer> GetContainerAsync(Region region)
         {
-            var container = this._blobClient.GetContainerReference(string.Format("{0}-{1}", region, this._config.AzureStorageContainerName));
+            var container = this._blobClient.GetContainerReference(this._config.AzureStorageContainerName);
 
             await container.CreateIfNotExistsAsync();
 
             return container;
         }
-
-        private async Task<CloudTable> GetTableReferenceAsync<T>()
-            where T : TableEntity
-        {
-            var tableReference = this._tableClient.GetTableReference(typeof (T).Name);
-            await tableReference.CreateIfNotExistsAsync();
-
-            return tableReference;
-        }
-        private async Task SaveRecording(RiotRecording recording)
+        private void SaveRecording(RiotRecording recording)
         {
             var storedRecording = new Recording
             {
@@ -152,13 +148,24 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
             };
             var json = JsonConvert.SerializeObject(storedRecording);
 
-            var entity = new RecordingEntity(storedRecording.Region, storedRecording.GameId.ToString())
+            var entity = new RecordingEntity
             {
-                Data = json
+                Id = this.CreateRecordingId(recording.Game.Region, recording.Game.GameId),
+                DataAsJson = json
             };
 
-            var tableReference = await this.GetTableReferenceAsync<RecordingEntity>();
-            await tableReference.ExecuteAsync(TableOperation.Insert(entity));
+            using (var session = this._sessionFactory.OpenSession())
+            using (var transaction = session.BeginTransaction())
+            {
+                session.SaveOrUpdate(entity);
+
+                transaction.Commit();
+            }
+        }
+
+        private string CreateRecordingId(string region, long gameId)
+        {
+            return string.Format("{0}/{1}", region, gameId);
         }
         private string CreateChunkFileName(string region, long gameId, int chunkId)
         {
@@ -171,18 +178,20 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
         #endregion
 
         #region Internal
-        private class RecordingEntity : TableEntity
+        private class RecordingEntity
         {
-            public RecordingEntity()
+            public virtual string Id { get; set; }
+            public virtual string DataAsJson { get; set; }
+        }
+        private class RecordingEntityMaps : ClassMap<RecordingEntity>
+        {
+            public RecordingEntityMaps()
             {
-            }
+                Table("Recordings");
 
-            public RecordingEntity(string partitionKey, string rowKey)
-                : base(partitionKey, rowKey)
-            {
+                Id(f => f.Id).GeneratedBy.Assigned();
+                Map(f => f.DataAsJson).Not.Nullable().MaxLength();
             }
-
-            public string Data { get; set; }
         }
         #endregion
     }

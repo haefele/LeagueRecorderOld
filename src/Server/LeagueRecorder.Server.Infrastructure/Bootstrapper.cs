@@ -40,13 +40,10 @@ namespace LeagueRecorder.Server.Infrastructure
             var startOptions = new StartOptions(container.Resolve<IConfig>().Url);
             this._webApp = WebApp.Start(startOptions, f => this.StartHttpApi(f, container));
 
-            if (container.Resolve<IConfig>().RecordGames)
-            {
-                LogTo.Debug("Starting the summoners in game finder.");
+            LogTo.Debug("Starting the summoners in game finder.");
 
-                var summonersInGameFinder = container.Resolve<ISummonersInGameFinder>();
-                summonersInGameFinder.Start();
-            }
+            var summonersInGameFinder = container.Resolve<ISummonersInGameFinder>();
+            summonersInGameFinder.Start();
 
             LogTo.Debug("Finished startup.");
         }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
 using LeagueRecorder.Server.Contracts.LeagueApi;
@@ -10,7 +12,7 @@ using LiteGuard;
 
 namespace LeagueRecorder.Server.Infrastructure.Recordings
 {
-    public class GameRecorderSupervisor : IGameRecorderSupervisor
+    public class GameRecorderSupervisor : IGameRecorderSupervisor, IDisposable
     {
         #region Fields
         private readonly ILeagueSpectatorApiClient _spectatorApiClient;
@@ -18,6 +20,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
         private readonly IRecordingStorage _recordingStorage;
 
         private readonly ConcurrentDictionary<RiotRecording, GameRecorder> _recordings;
+        private readonly Timer _timer;
         #endregion
 
         #region Constructors
@@ -38,6 +41,12 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
             this._recordingStorage = recordingStorage;
             
             this._recordings = new ConcurrentDictionary<RiotRecording, GameRecorder>();
+
+            this._timer = new Timer();
+            this._timer.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
+            this._timer.Elapsed += this.TimerOnElapsed;
+
+            this._timer.Start();
         }
         #endregion
 
@@ -62,8 +71,24 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
             GameRecorder recorder;
             if (this._recordings.TryRemove(recordingData, out recorder))
             {
+                LogTo.Info("Throwing game away {0} {1}.", gameInfo.Region, gameInfo.GameId);
+
                 recorder.Dispose();
             }
+        }
+        #endregion
+
+        #region Private Methods
+        private void TimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            LogTo.Info("Currently recording {0} games.", this._recordings.Keys.Count);
+        }
+        #endregion
+
+        #region Implementation of IDisposable
+        public void Dispose()
+        {
+            this._timer.Dispose();
         }
         #endregion
     }

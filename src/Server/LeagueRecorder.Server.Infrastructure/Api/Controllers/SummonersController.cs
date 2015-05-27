@@ -65,7 +65,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
         }
 
         [HttpPost]
-        [Route("Summoners/Challengers/{region}")]
+        [Route("Summoners/{region}/Challengers")]
         public async Task<HttpResponseMessage> AddChallengersAsync(string region)
         {
             Region actualRegion = Region.FromString(region);

@@ -10,6 +10,6 @@ namespace LeagueRecorder.Server.Contracts.Storage
     {
         Task<Result> SaveSummonerAsync(Summoner summonerToStore);
 
-        Task<Result<IList<Summoner>>> GetSummonersForInGameCheckAsync();
+        Task<Result<IList<Summoner>>> GetSummonersForInGameCheckAsync(string[] regions);
     }
 }

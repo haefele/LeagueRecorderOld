@@ -97,19 +97,27 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
             {
                 this._timer.Stop();
 
+                if (this._config.RecordGames == false)
+                    return;
+
                 string[] regions = this.GetRegionsThatAreAvailable();
-                Result<IList<Summoner>> summoners = await this._summonerStorage.GetSummonersForInGameCheckAsync();
+                Result<IList<Summoner>> summoners = await this._summonerStorage.GetSummonersForInGameCheckAsync(regions);
 
                 if (summoners.IsError)
                     return;
                 
-                foreach (var summoner in summoners.Data.Where(f => regions.Contains(f.Region)))
+                foreach (var summoner in summoners.Data)
                 {
                     Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
 
                     if (currentGameResult.IsSuccess || currentGameResult.IsWarning)
                     {
                         summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
+                        await this._summonerStorage.SaveSummonerAsync(summoner);
+                    }
+                    else
+                    {
+                        LogTo.Error("Error while retrieving the info if summoner {0} ({1} {2}) is ingame: {3}", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
                     }
 
                     if (currentGameResult.GetStatusCode() == HttpStatusCode.ServiceUnavailable)
@@ -120,13 +128,9 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
 
                     if (currentGameResult.IsSuccess)
                     {
-                        LogTo.Debug("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
+                        LogTo.Info("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
 
                         this._gameRecorderSupervisor.Record(currentGameResult.Data);
-                    }
-                    else
-                    {
-                        LogTo.Debug("The summoner {0} ({1} {2}) is currently NOT in game: {3}", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Message);
                     }
                 }
             }

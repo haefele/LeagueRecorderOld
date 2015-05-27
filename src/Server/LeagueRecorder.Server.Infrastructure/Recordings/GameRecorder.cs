@@ -142,7 +142,9 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
                 if (chunkResult.IsError)
                 {
                     LogTo.Error("Error while downloading chunk {0} for game {1} {2}.", maxRecordedChunkId, this.Recording.Game.Region, this.Recording.Game.GameId);
-                    continue;
+                    this._gameRecorderSupervisor.RemoveRecording(this.Recording.Game);
+
+                    return;
                 }
 
                 this.Recording.Chunks.Add(chunkResult.Data);
@@ -165,7 +167,9 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
                 if (keyFrameResult.IsError)
                 {
                     LogTo.Error("Error while downloading keyframe {0} for game {1} {2}.", maxRecordedKeyFrameId, this.Recording.Game.Region, this.Recording.Game.GameId);
-                    continue;
+                    this._gameRecorderSupervisor.RemoveRecording(this.Recording.Game);
+
+                    return;
                 }
 
                 this.Recording.KeyFrames.Add(keyFrameResult.Data);

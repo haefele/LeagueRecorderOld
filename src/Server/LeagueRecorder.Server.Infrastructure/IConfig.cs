@@ -14,5 +14,6 @@ namespace LeagueRecorder.Server.Infrastructure
         int DurationRegionsAreMarkedAsUnavailableInSeconds { get; }
         string AzureStorageConnectionString { get; }
         string AzureStorageContainerName { get; }
+        string AzureSqlDatabaseConnectionString { get; }
     }
 }

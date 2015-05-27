@@ -45,20 +45,14 @@ namespace LeagueRecorder.Server.Infrastructure.LeagueApi
             try
             {
                 HttpResponseMessage response = await this.GetClient()
-                    .GetAsync(string.Format("api/lol/static-data/{0}/v1.2/versions", region.RiotApiPlatformId));
+                    .GetAsync(string.Format("api/lol/static-data/{0}/v1.2/realm", region.RiotApiPlatformId));
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     var responseString = await response.Content.ReadAsStringAsync();
-                    var responseJson = JArray.Parse(responseString);
+                    var responseJson = JObject.Parse(responseString);
 
-                    var largestVersion = responseJson
-                        .Select(f => f.ToObject<string>())
-                        .Select(Version.Parse)
-                        .OrderByDescending(f => f)
-                        .First();
-
-                    return Result.AsSuccess(largestVersion);
+                    return Result.AsSuccess(Version.Parse(responseJson.Value<string>("v")));
                 }
                 else
                 {
