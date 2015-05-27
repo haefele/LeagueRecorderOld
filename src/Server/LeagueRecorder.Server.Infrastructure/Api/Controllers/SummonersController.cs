@@ -50,7 +50,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
                 Region = actualRegion.ToString(),
                 SummonerId = summoner.Data.Id,
                 SummonerName = summoner.Data.Name,
-                LastCheckIfInGameDate = DateTimeOffset.UtcNow
+                NextDateToCheckIfSummonerIsIngame = DateTimeOffset.UtcNow
             };
             await this._summonerStorage.SaveSummonerAsync(summonerToStore);
             
@@ -85,7 +85,7 @@ namespace LeagueRecorder.Server.Infrastructure.Api.Controllers
                     Region = actualRegion.ToString(),
                     SummonerId = summoner.Id,
                     SummonerName = summoner.Name,
-                    LastCheckIfInGameDate = DateTimeOffset.UtcNow,
+                    NextDateToCheckIfSummonerIsIngame = DateTimeOffset.UtcNow,
                 };
 
                 var saveResult = await this._summonerStorage.SaveSummonerAsync(summonerToStore);

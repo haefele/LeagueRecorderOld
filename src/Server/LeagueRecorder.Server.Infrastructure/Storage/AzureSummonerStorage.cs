@@ -38,7 +38,7 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
                         Id = this.CreateSummonerId(summonerToStore.Region, summonerToStore.SummonerId),
                         Region = summonerToStore.Region,
                         SummonerId = summonerToStore.SummonerId,
-                        LastCheckIfIngameDate = summonerToStore.LastCheckIfInGameDate.UtcDateTime,
+                        NextDateToCheckIfSummonerIsIngame = summonerToStore.NextDateToCheckIfSummonerIsIngame.UtcDateTime,
                         SummonerName = summonerToStore.SummonerName
                     };
 
@@ -55,18 +55,16 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
             {
                 using(var session = this._sessionFactory.OpenSession())
                 {
-                    var referenceDate = DateTime.UtcNow.AddSeconds(-this._config.IntervalToCheckIfOneSummonerIsIngame);
-                
                     List<SummonerEntity> result = session.Query<SummonerEntity>()
-                        .Where(f => regions.Contains(f.Region) && f.LastCheckIfIngameDate <= referenceDate)
-                        .OrderBy(f => f.LastCheckIfIngameDate)
+                        .Where(f => regions.Contains(f.Region) && f.NextDateToCheckIfSummonerIsIngame <= DateTime.UtcNow)
+                        .OrderBy(f => f.NextDateToCheckIfSummonerIsIngame)
                         .Take(this._config.CountOfSummonersToCheckIfIngame)
                         .ToList();
                 
                     IList<Summoner> converted = result
                         .Select(f => new Summoner
                             {
-                                LastCheckIfInGameDate = f.LastCheckIfIngameDate, 
+                                NextDateToCheckIfSummonerIsIngame = f.NextDateToCheckIfSummonerIsIngame, 
                                 Region = f.Region, 
                                 SummonerId = f.SummonerId, 
                                 SummonerName = f.SummonerName
@@ -90,7 +88,7 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
             public virtual string Region { get; set; }
             public virtual long SummonerId { get; set; }
             public virtual string SummonerName { get; set; }
-            public virtual DateTime LastCheckIfIngameDate { get; set; }
+            public virtual DateTimeOffset NextDateToCheckIfSummonerIsIngame { get; set; }
         }
         private class SummonerEntityMaps : ClassMap<SummonerEntity>
         {
@@ -103,7 +101,7 @@ namespace LeagueRecorder.Server.Infrastructure.Storage
                 Map(f => f.Region).Not.Nullable().MaxLength();
                 Map(f => f.SummonerId).Not.Nullable();
                 Map(f => f.SummonerName).Not.Nullable().MaxLength();
-                Map(f => f.LastCheckIfIngameDate).Not.Nullable();
+                Map(f => f.NextDateToCheckIfSummonerIsIngame).Not.Nullable();
             }
         }
         #endregion

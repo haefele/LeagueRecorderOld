@@ -11,6 +11,7 @@ namespace LeagueRecorder.Server.Infrastructure
         bool RecordGames { get; }
         int CountOfSummonersToCheckIfIngame { get; }
         int IntervalToCheckIfOneSummonerIsIngame { get; }
+        int DurationToIgnoreSummonersThatAreIngame { get; }
         int DurationRegionsAreMarkedAsUnavailableInSeconds { get; }
         string AzureStorageConnectionString { get; }
         string AzureStorageContainerName { get; }

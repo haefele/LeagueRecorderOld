@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Timers;
 using Anotar.NLog;
 using JetBrains.Annotations;
@@ -96,6 +98,7 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
             try
             {
                 this._timer.Stop();
+                var watch = Stopwatch.StartNew();
 
                 if (this._config.RecordGames == false)
                     return;
@@ -105,14 +108,23 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
 
                 if (summoners.IsError)
                     return;
-                
-                foreach (var summoner in summoners.Data)
+
+                var tasks = summoners.Data.Select(async summoner =>
                 {
                     Result<RiotSpectatorGameInfo> currentGameResult = await this._leagueApiClient.GetCurrentGameAsync(Region.FromString(summoner.Region), summoner.SummonerId);
 
-                    if (currentGameResult.IsSuccess || currentGameResult.IsWarning)
+                    if (currentGameResult.IsSuccess)
                     {
-                        summoner.LastCheckIfInGameDate = DateTimeOffset.Now;
+                        LogTo.Info("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
+
+                        this._gameRecorderSupervisor.Record(currentGameResult.Data);
+
+                        summoner.NextDateToCheckIfSummonerIsIngame = DateTimeOffset.Now.AddMinutes(this._config.DurationToIgnoreSummonersThatAreIngame);
+                        await this._summonerStorage.SaveSummonerAsync(summoner);
+                    }
+                    else if (currentGameResult.IsWarning)
+                    {
+                        summoner.NextDateToCheckIfSummonerIsIngame = DateTimeOffset.Now.AddSeconds(this._config.IntervalToCheckForSummonersThatAreIngameInSeconds);
                         await this._summonerStorage.SaveSummonerAsync(summoner);
                     }
                     else
@@ -123,16 +135,14 @@ namespace LeagueRecorder.Server.Infrastructure.Recordings
                     if (currentGameResult.GetStatusCode() == HttpStatusCode.ServiceUnavailable)
                     {
                         this.RememberRegionIsUnavailable(summoner);
-                        break;
+                        return;
                     }
+                });
 
-                    if (currentGameResult.IsSuccess)
-                    {
-                        LogTo.Info("The summoner {0} ({1} {2}) is currently in game {3} {4}.", summoner.SummonerName, summoner.Region, summoner.SummonerId, currentGameResult.Data.Region, currentGameResult.Data.GameId);
+                await Task.WhenAll(tasks);
 
-                        this._gameRecorderSupervisor.Record(currentGameResult.Data);
-                    }
-                }
+                watch.Stop();
+                LogTo.Debug("One timer tick took {0}.", watch.Elapsed);
             }
             catch (Exception exception)
             {

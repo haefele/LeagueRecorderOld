@@ -9,6 +9,6 @@ namespace LeagueRecorder.Shared.Entities
 
         public string SummonerName { get; set; }
 
-        public DateTimeOffset LastCheckIfInGameDate { get; set; }
+        public DateTimeOffset NextDateToCheckIfSummonerIsIngame { get; set; }
     }
 }
